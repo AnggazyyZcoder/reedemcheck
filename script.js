@@ -1,128 +1,114 @@
-// Konfigurasi JSONBin
-const JSONBIN_ID = "693fbc76d0ea881f402a4544";
-const API_KEY = "$2a$10$FrRFp7JmBmpnrWofdI2GyOHCeiMwzhvrVQ.Hh2H3FaBCiFlkxh4c6";
+// Konfigurasi API JSONBIN
+const JSONBIN_ID = '693fbc76d0ea881f402a4544';
+const API_KEY = '$2a$10$FrRFp7JmBmpnrWofdI2GyOHCeiMwzhvrVQ.Hh2H3FaBCiFlkxh4c6';
 const API_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
 
-// Data statistik
-let redeemsData = [];
-let stats = {
-    totalSuccess: 0,
-    topServer: "Thailand",
-    topAndroid: "Android 10",
-    bestCombo: "Thailand + Android 10"
+// Data simulasi jika API tidak tersedia (hanya untuk fallback)
+const fallbackData = {
+    "redeems": [
+        {
+            "id": "REDXYZ123ABC",
+            "key": "USER_KEY_HERE",
+            "createdAt": "2024-01-01T12:00:00.000Z",
+            "active": "Active",
+            "status": false,
+            "deviceId": "device_abc123xyz",
+            "details": null
+        },
+        {
+            "id": "REDXYZ456DEF",
+            "key": "USER_KEY_HERE_2",
+            "createdAt": "2024-01-01T13:00:00.000Z",
+            "active": "Disable",
+            "status": true,
+            "deviceId": "device_def456ghi",
+            "details": {
+                "server": "Thailand",
+                "android": "Android 10",
+                "time": "13:30:45",
+                "attempt": 5
+            }
+        },
+        {
+            "id": "REDXYZ789GHI",
+            "key": "USER_KEY_HERE_3",
+            "createdAt": "2024-01-01T14:00:00.000Z",
+            "active": "Active",
+            "status": true,
+            "deviceId": "device_ghi789jkl",
+            "details": {
+                "server": "Singapore",
+                "android": "Android 11",
+                "time": "14:15:30",
+                "attempt": 3
+            }
+        },
+        {
+            "id": "REDXYZ012JKL",
+            "key": "USER_KEY_HERE_4",
+            "createdAt": "2024-01-01T15:00:00.000Z",
+            "active": "Active",
+            "status": true,
+            "deviceId": "device_jkl012mno",
+            "details": {
+                "server": "Indonesia",
+                "android": "Android 12",
+                "time": "15:45:20",
+                "attempt": 2
+            }
+        }
+    ]
 };
 
-// DOM Elements
-const loadingScreen = document.getElementById('loadingScreen');
-const mainContent = document.getElementById('mainContent');
-const startBtn = document.getElementById('startBtn');
-const navToggle = document.getElementById('navToggle');
-const navMenu = document.querySelector('.nav-menu');
-const navLinks = document.querySelectorAll('.nav-link');
-const checkBtn = document.getElementById('checkBtn');
-const redeemIdInput = document.getElementById('redeemId');
-const loadingCheck = document.getElementById('loadingCheck');
-const popupOverlay = document.getElementById('popupOverlay');
-const popupContainer = document.getElementById('popupContainer');
-const popupClose = document.getElementById('popupClose');
-const popupContent = document.getElementById('popupContent');
+// Variabel global
+let redeemData = null;
+let stats = {
+    totalSuccess: 0,
+    topServer: '',
+    topAndroid: '',
+    bestCombo: ''
+};
 
-// Fungsi untuk menampilkan loading screen selama 3 detik
-function initLoadingScreen() {
+// Fungsi untuk inisialisasi
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup loading screen
     setTimeout(() => {
-        loadingScreen.style.opacity = '0';
-        loadingScreen.style.visibility = 'hidden';
+        const loadingScreen = document.getElementById('loadingScreen');
+        loadingScreen.classList.add('fade-out');
         
-        // Inisialisasi setelah loading screen selesai
+        // Setelah loading selesai, muat data
         setTimeout(() => {
-            initApp();
-            setupEventListeners();
-            loadDataFromJsonBin();
+            loadingScreen.style.display = 'none';
+            initializeApp();
         }, 800);
     }, 3000);
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Setup scroll animations
+    setupScrollAnimations();
+});
+
+// Fungsi untuk inisialisasi aplikasi
+async function initializeApp() {
+    // Load data dari JSONBIN
+    await loadRedeemData();
+    
+    // Hitung statistik
+    calculateStats();
+    
+    // Animasikan statistik
+    animateStats();
 }
 
-// Inisialisasi aplikasi
-function initApp() {
-    // Animasi fade in untuk semua elemen dengan class fade-in
-    const fadeElements = document.querySelectorAll('.fade-in');
-    fadeElements.forEach(element => {
-        element.classList.add('visible');
-    });
-    
-    // Scroll ke section stats ketika tombol Mulai diklik
-    startBtn.addEventListener('click', () => {
-        document.getElementById('stats').scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-        });
-    });
-}
-
-// Setup event listeners
-function setupEventListeners() {
-    // Toggle navbar mobile
-    navToggle.addEventListener('click', () => {
-        navMenu.classList.toggle('active');
-    });
-    
-    // Close navbar ketika klik link
-    navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            navMenu.classList.remove('active');
-            
-            // Update active class
-            navLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-        });
-    });
-    
-    // Check redeem button
-    checkBtn.addEventListener('click', checkRedeemStatus);
-    redeemIdInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            checkRedeemStatus();
-        }
-    });
-    
-    // Close popup
-    popupClose.addEventListener('click', () => {
-        popupOverlay.style.display = 'none';
-        popupContainer.style.animation = 'popupSlide 0.4s ease';
-    });
-    
-    // Close popup ketika klik di luar
-    popupOverlay.addEventListener('click', (e) => {
-        if (e.target === popupOverlay) {
-            popupOverlay.style.display = 'none';
-            popupContainer.style.animation = 'popupSlide 0.4s ease';
-        }
-    });
-    
-    // Intersection Observer untuk animasi scroll
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, observerOptions);
-    
-    // Observe semua elemen dengan class fade-in
-    document.querySelectorAll('.fade-in').forEach(element => {
-        observer.observe(element);
-    });
-}
-
-// Fetch data dari JSONBin
-async function loadDataFromJsonBin() {
+// Fungsi untuk load data dari JSONBIN
+async function loadRedeemData() {
     try {
+        console.log('Mengambil data dari JSONBIN...');
+        
         const response = await fetch(API_URL, {
+            method: 'GET',
             headers: {
                 'X-Master-Key': API_KEY,
                 'Content-Type': 'application/json'
@@ -134,359 +120,288 @@ async function loadDataFromJsonBin() {
         }
         
         const data = await response.json();
-        redeemsData = data.record.redeems;
+        console.log('Data berhasil diambil:', data);
         
-        // Hitung statistik dari data
-        calculateStatistics();
-        
-        // Update UI dengan animasi hitung
-        updateStatisticsUI();
-        
-        console.log('Data berhasil di-load dari JSONBin:', redeemsData);
-        
+        // Gunakan data dari API jika tersedia
+        if (data && data.record && data.record.redeems) {
+            redeemData = data.record;
+        } else {
+            // Fallback ke data simulasi
+            console.warn('Data dari API tidak valid, menggunakan fallback data');
+            redeemData = fallbackData;
+        }
     } catch (error) {
-        console.error('Error loading data from JSONBin:', error);
-        
-        // Fallback ke data default jika fetch gagal
-        redeemsData = [
-            {
-                "id": "REDXYZ123ABC",
-                "key": "USER_KEY_HERE",
-                "createdAt": "2024-01-01T12:00:00.000Z",
-                "active": "Active",
-                "status": false,
-                "deviceId": "device_abc123xyz",
-                "details": null
-            },
-            {
-                "id": "REDXYZ456DEF",
-                "key": "USER_KEY_HERE_2",
-                "createdAt": "2024-01-01T13:00:00.000Z",
-                "active": "Disable",
-                "status": true,
-                "deviceId": "device_def456ghi",
-                "details": {
-                    "server": "Thailand",
-                    "android": "Android 10",
-                    "time": "13:30:45",
-                    "attempt": 5
-                }
-            }
-        ];
-        
-        calculateStatistics();
-        updateStatisticsUI();
+        console.error('Error mengambil data dari JSONBIN:', error);
+        console.warn('Menggunakan fallback data karena API error');
+        // Fallback ke data simulasi jika API error
+        redeemData = fallbackData;
     }
 }
 
-// Hitung statistik dari data redeems
-function calculateStatistics() {
-    if (!redeemsData || redeemsData.length === 0) return;
+// Fungsi untuk menghitung statistik
+function calculateStats() {
+    if (!redeemData || !redeemData.redeems) return;
     
-    // Hitung total success (status: true)
-    stats.totalSuccess = redeemsData.filter(redeem => redeem.status === true).length;
+    const redeems = redeemData.redeems;
     
-    // Cari top server (dari yang memiliki details)
-    const servers = redeemsData
-        .filter(redeem => redeem.details && redeem.details.server)
-        .map(redeem => redeem.details.server);
+    // Hitung total sukses
+    stats.totalSuccess = redeems.filter(r => r.status === true).length;
     
-    if (servers.length > 0) {
-        const serverCounts = servers.reduce((acc, server) => {
-            acc[server] = (acc[server] || 0) + 1;
-            return acc;
-        }, {});
-        
+    // Hitung server terpopuler
+    const serverCounts = {};
+    redeems.forEach(r => {
+        if (r.details && r.details.server) {
+            const server = r.details.server;
+            serverCounts[server] = (serverCounts[server] || 0) + 1;
+        }
+    });
+    
+    if (Object.keys(serverCounts).length > 0) {
         stats.topServer = Object.keys(serverCounts).reduce((a, b) => 
             serverCounts[a] > serverCounts[b] ? a : b
         );
+    } else {
+        stats.topServer = "Tidak ada data";
     }
     
-    // Cari top Android version
-    const androidVersions = redeemsData
-        .filter(redeem => redeem.details && redeem.details.android)
-        .map(redeem => redeem.details.android);
+    // Hitung versi Android terpopuler
+    const androidCounts = {};
+    redeems.forEach(r => {
+        if (r.details && r.details.android) {
+            const android = r.details.android;
+            androidCounts[android] = (androidCounts[android] || 0) + 1;
+        }
+    });
     
-    if (androidVersions.length > 0) {
-        const androidCounts = androidVersions.reduce((acc, version) => {
-            acc[version] = (acc[version] || 0) + 1;
-            return acc;
-        }, {});
-        
+    if (Object.keys(androidCounts).length > 0) {
         stats.topAndroid = Object.keys(androidCounts).reduce((a, b) => 
             androidCounts[a] > androidCounts[b] ? a : b
         );
+    } else {
+        stats.topAndroid = "Tidak ada data";
     }
     
-    // Best combo (server + Android)
-    const combos = redeemsData
-        .filter(redeem => redeem.details && redeem.details.server && redeem.details.android)
-        .map(redeem => `${redeem.details.server} + ${redeem.details.android}`);
+    // Hitung best combo (server + android dengan sukses tertinggi)
+    const comboCounts = {};
+    redeems.forEach(r => {
+        if (r.status === true && r.details && r.details.server && r.details.android) {
+            const combo = `${r.details.server} + ${r.details.android}`;
+            comboCounts[combo] = (comboCounts[combo] || 0) + 1;
+        }
+    });
     
-    if (combos.length > 0) {
-        const comboCounts = combos.reduce((acc, combo) => {
-            acc[combo] = (acc[combo] || 0) + 1;
-            return acc;
-        }, {});
-        
+    if (Object.keys(comboCounts).length > 0) {
         stats.bestCombo = Object.keys(comboCounts).reduce((a, b) => 
             comboCounts[a] > comboCounts[b] ? a : b
         );
+    } else {
+        stats.bestCombo = "Tidak ada data";
     }
 }
 
-// Update UI dengan animasi hitung
-function updateStatisticsUI() {
-    // Animate total success count
-    animateCount('totalSuccess', 0, stats.totalSuccess, 1500);
+// Fungsi untuk animasi statistik
+function animateStats() {
+    // Animasikan total sukses
+    const totalSuccessEl = document.getElementById('totalSuccess');
+    animateValue(totalSuccessEl, 0, stats.totalSuccess, 2000);
     
-    // Update other stats with animation
-    setTimeout(() => {
-        document.getElementById('topServer').textContent = stats.topServer;
-        document.getElementById('topServer').classList.add('count-animate');
-        
-        setTimeout(() => {
-            document.getElementById('topAndroid').textContent = stats.topAndroid;
-            document.getElementById('topAndroid').classList.add('count-animate');
-            
-            setTimeout(() => {
-                document.getElementById('bestCombo').textContent = stats.bestCombo;
-                document.getElementById('bestCombo').classList.add('count-animate');
-            }, 300);
-        }, 300);
-    }, 1600);
+    // Update statistik lainnya
+    document.getElementById('topServer').textContent = stats.topServer;
+    document.getElementById('topAndroid').textContent = stats.topAndroid;
+    document.getElementById('bestCombo').textContent = stats.bestCombo;
 }
 
-// Animasi hitung angka
-function animateCount(elementId, start, end, duration) {
-    const element = document.getElementById(elementId);
+// Fungsi untuk animasi angka
+function animateValue(element, start, end, duration) {
     let startTimestamp = null;
-    
     const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         const value = Math.floor(progress * (end - start) + start);
-        
         element.textContent = value;
-        element.classList.add('count-animate');
-        
         if (progress < 1) {
             window.requestAnimationFrame(step);
-        } else {
-            // Reset animation class
-            setTimeout(() => {
-                element.classList.remove('count-animate');
-            }, 500);
         }
     };
-    
     window.requestAnimationFrame(step);
 }
 
-// Cek status redeem
-async function checkRedeemStatus() {
-    const redeemId = redeemIdInput.value.trim();
+// Fungsi untuk setup event listeners
+function setupEventListeners() {
+    // Navbar menu
+    const navbarMenu = document.getElementById('navbarMenu');
+    const dropdownMenu = document.getElementById('dropdownMenu');
     
-    if (!redeemId) {
-        showNotification('Masukkan ID Reedem terlebih dahulu!', 'error');
+    navbarMenu.addEventListener('click', () => {
+        dropdownMenu.classList.toggle('active');
+    });
+    
+    // Tutup dropdown ketika klik di luar
+    document.addEventListener('click', (e) => {
+        if (!navbarMenu.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.remove('active');
+        }
+    });
+    
+    // Scroll down button
+    const scrollDownBtn = document.getElementById('scrollDownBtn');
+    scrollDownBtn.addEventListener('click', () => {
+        document.getElementById('stats').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    });
+    
+    // Check redeem button
+    const checkRedeemBtn = document.getElementById('checkRedeemBtn');
+    const redeemIdInput = document.getElementById('redeemIdInput');
+    const checkLoading = document.getElementById('checkLoading');
+    
+    checkRedeemBtn.addEventListener('click', () => {
+        const redeemId = redeemIdInput.value.trim();
+        
+        if (!redeemId) {
+            alert('Harap masukkan ID Reedem!');
+            redeemIdInput.focus();
+            return;
+        }
+        
+        // Tampilkan loading
+        checkLoading.classList.add('active');
+        
+        // Simulasi delay 3 detik
+        setTimeout(() => {
+            checkRedeem(redeemId);
+            checkLoading.classList.remove('active');
+        }, 3000);
+    });
+    
+    // Enter key untuk input
+    redeemIdInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            checkRedeemBtn.click();
+        }
+    });
+    
+    // Popup close buttons
+    const popupCloseBtn = document.getElementById('popupCloseBtn');
+    const closePopupBtn = document.getElementById('closePopupBtn');
+    const popupOverlay = document.getElementById('popupOverlay');
+    
+    popupCloseBtn.addEventListener('click', closePopup);
+    closePopupBtn.addEventListener('click', closePopup);
+    
+    // Tutup popup ketika klik di luar
+    popupOverlay.addEventListener('click', (e) => {
+        if (e.target === popupOverlay) {
+            closePopup();
+        }
+    });
+}
+
+// Fungsi untuk cek reedem
+function checkRedeem(redeemId) {
+    if (!redeemData || !redeemData.redeems) {
+        alert('Data belum dimuat. Silakan coba lagi.');
         return;
     }
     
-    // Show loading
-    loadingCheck.classList.add('active');
-    checkBtn.disabled = true;
+    // Cari reedem berdasarkan ID
+    const redeem = redeemData.redeems.find(r => r.id === redeemId);
     
-    // Simulate API delay
-    setTimeout(() => {
-        // Cari redeem di data
-        const foundRedeem = redeemsData.find(redeem => redeem.id === redeemId);
-        
-        // Hide loading
-        loadingCheck.classList.remove('active');
-        checkBtn.disabled = false;
-        
-        if (foundRedeem) {
-            showRedeemDetails(foundRedeem);
-            showNotification('ID Reedem ditemukan!', 'success');
-        } else {
-            showNotification('ID Reedem tidak ditemukan!', 'error');
-        }
-    }, 3000);
+    if (!redeem) {
+        alert(`ID Reedem "${redeemId}" tidak ditemukan!`);
+        return;
+    }
+    
+    // Tampilkan popup dengan informasi reedem
+    showRedeemPopup(redeem);
 }
 
-// Tampilkan detail redeem di popup
-function showRedeemDetails(redeem) {
-    // Format tanggal
-    const date = new Date(redeem.createdAt);
-    const formattedDate = date.toLocaleDateString('id-ID', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+// Fungsi untuk menampilkan popup reedem
+function showRedeemPopup(redeem) {
+    // Update informasi di popup
+    document.getElementById('popupRedeemId').textContent = redeem.id;
+    document.getElementById('popupActiveStatus').textContent = redeem.active;
+    document.getElementById('popupActiveServer').textContent = redeem.details ? redeem.details.server : 'Tidak tersedia';
+    
+    // Update status reedem
+    const redeemStatusEl = document.getElementById('popupRedeemStatus');
+    if (redeem.status) {
+        redeemStatusEl.textContent = 'Reedem';
+        redeemStatusEl.className = 'status-badge success';
+    } else {
+        redeemStatusEl.textContent = 'Not Reedem';
+        redeemStatusEl.className = 'status-badge danger';
+    }
+    
+    // Update detail jika ada
+    const redeemDetails = document.getElementById('redeemDetails');
+    if (redeem.details) {
+        document.getElementById('detailServer').textContent = redeem.details.server;
+        document.getElementById('detailAndroid').textContent = redeem.details.android;
+        document.getElementById('detailTime').textContent = redeem.details.time;
+        document.getElementById('detailAttempt').textContent = redeem.details.attempt;
+        redeemDetails.style.display = 'block';
+    } else {
+        redeemDetails.style.display = 'none';
+    }
+    
+    // Tampilkan popup
+    const popupOverlay = document.getElementById('popupOverlay');
+    popupOverlay.classList.add('active');
+}
+
+// Fungsi untuk menutup popup
+function closePopup() {
+    const popupOverlay = document.getElementById('popupOverlay');
+    popupOverlay.classList.remove('active');
+    
+    // Reset input
+    document.getElementById('redeemIdInput').value = '';
+}
+
+// Fungsi untuk setup scroll animations
+function setupScrollAnimations() {
+    // Observers untuk animasi fade-in
+    const fadeElements = document.querySelectorAll('.fade-in');
+    
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+    
+    fadeElements.forEach(element => {
+        observer.observe(element);
     });
-    const formattedTime = date.toLocaleTimeString('id-ID');
     
-    // Status aktif
-    const isActive = redeem.active === "Active";
-    const isRedeemed = redeem.status === true;
-    
-    // Build popup content
-    popupContent.innerHTML = `
-        <div class="popup-detail">
-            <div class="detail-header">
-                <h4 class="detail-title">ID: ${redeem.id}</h4>
-                <span class="detail-status ${isActive ? 'active' : 'disabled'}">
-                    ${isActive ? 'Active' : 'Disabled'}
-                </span>
-            </div>
-            <div class="detail-info">
-                <div class="detail-item">
-                    <span class="detail-label">Status Reedem:</span>
-                    <span class="detail-value ${isRedeemed ? 'success' : 'failed'}">
-                        ${isRedeemed ? '✓ REEDEM' : '✗ NOT REEDEM'}
-                    </span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Device ID:</span>
-                    <span class="detail-value">${redeem.deviceId}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Dibuat pada:</span>
-                    <span class="detail-value">${formattedDate}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Waktu:</span>
-                    <span class="detail-value">${formattedTime}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">User Key:</span>
-                    <span class="detail-value">${redeem.key}</span>
-                </div>
-            </div>
-        </div>
-        
-        ${redeem.details ? `
-        <div class="popup-detail">
-            <div class="detail-header">
-                <h4 class="detail-title">Detail Reedem</h4>
-                <span class="detail-status redeemed">✓ BERHASIL</span>
-            </div>
-            <div class="detail-info">
-                <div class="detail-item">
-                    <span class="detail-label">Server Sukses:</span>
-                    <span class="detail-value success">${redeem.details.server}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Android Sukses:</span>
-                    <span class="detail-value success">${redeem.details.android}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Reedem pada jam:</span>
-                    <span class="detail-value">${redeem.details.time}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Percobaan ke:</span>
-                    <span class="detail-value">${redeem.details.attempt}</span>
-                </div>
-            </div>
-        </div>
-        ` : `
-        <div class="popup-detail">
-            <div class="detail-header">
-                <h4 class="detail-title">Detail Reedem</h4>
-                <span class="detail-status not-redeemed">✗ BELUM REEDEM</span>
-            </div>
-            <div class="detail-info">
-                <div class="detail-item">
-                    <span class="detail-label">Status:</span>
-                    <span class="detail-value failed">Belum melakukan reedem</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Informasi:</span>
-                    <span class="detail-value">Reedem belum dilakukan atau gagal</span>
-                </div>
-            </div>
-        </div>
-        `}
-    `;
-    
-    // Show popup with animation
-    popupOverlay.style.display = 'flex';
-    popupContainer.style.animation = 'popupSlide 0.4s ease';
+    // Smooth scroll untuk link navbar
+    const navLinks = document.querySelectorAll('.dropdown-menu a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                // Tutup dropdown menu
+                document.getElementById('dropdownMenu').classList.remove('active');
+                
+                // Scroll ke target
+                targetElement.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
 }
-
-// Tampilkan notifikasi
-function showNotification(message, type) {
-    // Hapus notifikasi sebelumnya jika ada
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
-    // Buat elemen notifikasi
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-        <span>${message}</span>
-    `;
-    
-    // Style untuk notifikasi
-    notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: ${type === 'success' ? 'rgba(46, 204, 113, 0.95)' : 'rgba(231, 76, 60, 0.95)'};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        font-weight: 600;
-        z-index: 3000;
-        animation: slideInRight 0.3s ease, fadeOut 0.3s ease 3s forwards;
-        backdrop-filter: blur(10px);
-        border: 1px solid ${type === 'success' ? 'rgba(46, 204, 113, 0.3)' : 'rgba(231, 76, 60, 0.3)'};
-    `;
-    
-    // Tambahkan ke body
-    document.body.appendChild(notification);
-    
-    // Hapus setelah 3 detik
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 3300);
-}
-
-// Add CSS animation for notifications
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-    
-    @keyframes fadeOut {
-        from {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// Inisialisasi aplikasi
-document.addEventListener('DOMContentLoaded', initLoadingScreen);

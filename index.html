@@ -3,199 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANGGAZYY MARKET</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <title>Anggazyy Market - Status Reedem</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-content">
-            <div class="loading-logo">
-                <i class="fas fa-store"></i>
-                <span>ANGGAZYY</span>
+            <div class="logo-loading">
+                <i class="fas fa-gift"></i>
+                <span>ANGGAZYY MARKET</span>
             </div>
             <div class="loading-bar">
                 <div class="loading-progress"></div>
             </div>
-            <p class="loading-text">Loading Market...</p>
+            <p class="loading-text">Menginisialisasi sistem...</p>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container" id="mainContent">
+    <!-- Background Animasi -->
+    <div class="animated-background"></div>
+    
+    <!-- Main Container -->
+    <div class="container" id="mainContainer">
         <!-- Navbar -->
         <nav class="navbar">
-            <div class="nav-container">
-                <div class="nav-logo">
-                    <i class="fas fa-store"></i>
-                    <span>ANGGAZYY MARKET</span>
-                </div>
-                <div class="nav-menu">
-                    <a href="#dashboard" class="nav-link active"><i class="fas fa-home"></i> Dashboard</a>
-                    <a href="#stats" class="nav-link"><i class="fas fa-chart-line"></i> Statistik</a>
-                    <a href="#check" class="nav-link"><i class="fas fa-search"></i> Cek Reedem</a>
-                    <a href="#contact" class="nav-link"><i class="fas fa-phone-alt"></i> Kontak</a>
-                </div>
-                <button class="nav-toggle" id="navToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
+            <div class="navbar-brand">
+                <i class="fas fa-gift"></i>
+                <span>ANGGAZYY MARKET</span>
+            </div>
+            <div class="navbar-menu" id="navbarMenu">
+                <i class="fas fa-ellipsis-v"></i>
+            </div>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="#dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="#stats"><i class="fas fa-chart-line"></i> Statistik</a>
+                <a href="#check"><i class="fas fa-search"></i> Cek Reedem</a>
+                <a href="#footer"><i class="fas fa-info-circle"></i> Info</a>
             </div>
         </nav>
 
         <!-- Dashboard -->
-        <section class="dashboard" id="dashboard">
-            <div class="dashboard-content">
-                <div class="welcome-text fade-in">
-                    <h1>Hai, Selamat datang di <span class="highlight">Anggazyy Market</span></h1>
-                    <p>Disini kamu dapat melihat Status reedem kamu dan total reedem ya!</p>
-                    <button class="start-btn" id="startBtn">
-                        Mulai! <i class="fas fa-arrow-down"></i>
+        <section class="dashboard-section" id="dashboard">
+            <div class="welcome-card fade-in">
+                <h1>Hai, Selamat datang di <span class="highlight">Anggazyy Market</span></h1>
+                <p>Disini kamu dapat melihat Status reedem kamu dan total reedem ya!</p>
+                <div class="welcome-action">
+                    <button class="scroll-down-btn" id="scrollDownBtn">
+                        <span>Mulai!</span>
+                        <i class="fas fa-arrow-down"></i>
                     </button>
-                </div>
-                <div class="dashboard-illustration">
-                    <div class="floating-card">
-                        <i class="fas fa-gift"></i>
-                        <h3>Reedem Hadiah</h3>
-                        <p>Tersedia setiap hari!</p>
-                    </div>
-                    <div class="floating-card">
-                        <i class="fas fa-shield-alt"></i>
-                        <h3>100% Aman</h3>
-                        <p>Transaksi terjamin</p>
-                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Statistics Section -->
+        <!-- Statistik -->
         <section class="stats-section" id="stats">
-            <h2 class="section-title fade-in"><i class="fas fa-chart-bar"></i> Realtime Statstistik</h2>
-            <div class="stats-container">
+            <h2 class="section-title fade-in">Realtime Statistik</h2>
+            <div class="stats-grid">
                 <div class="stat-card fade-in">
                     <div class="stat-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
-                    <h3>Total Succes</h3>
+                    <h3>Total Sukses</h3>
                     <div class="stat-value" id="totalSuccess">0</div>
-                    <p class="stat-desc">Transaksi berhasil</p>
+                    <p class="stat-desc">Reedem berhasil</p>
                 </div>
+                
                 <div class="stat-card fade-in">
                     <div class="stat-icon">
                         <i class="fas fa-server"></i>
                     </div>
                     <h3>Top Server</h3>
-                    <div class="stat-value" id="topServer">-</div>
+                    <div class="stat-value" id="topServer">Loading...</div>
                     <p class="stat-desc">Server terpopuler</p>
                 </div>
+                
                 <div class="stat-card fade-in">
                     <div class="stat-icon">
                         <i class="fab fa-android"></i>
                     </div>
                     <h3>Top Version Android</h3>
-                    <div class="stat-value" id="topAndroid">-</div>
-                    <p class="stat-desc">Versi terbaik</p>
+                    <div class="stat-value" id="topAndroid">Loading...</div>
+                    <p class="stat-desc">Versi Android terbaik</p>
                 </div>
+                
                 <div class="stat-card fade-in">
                     <div class="stat-icon">
-                        <i class="fas fa-gamepad"></i>
+                        <i class="fas fa-fire"></i>
                     </div>
                     <h3>Best Combo</h3>
-                    <div class="stat-value" id="bestCombo">-</div>
+                    <div class="stat-value" id="bestCombo">Loading...</div>
                     <p class="stat-desc">Kombinasi terbaik</p>
                 </div>
             </div>
+            
+            <div class="tips-label">
+                <i class="fas fa-lightbulb"></i>
+                <span>Tips: Pastikan ID reedem Anda valid untuk pengecekan status</span>
+            </div>
         </section>
 
-        <!-- Check Redeem Section -->
+        <!-- Cek Status Reedem -->
         <section class="check-section" id="check">
-            <h2 class="section-title fade-in"><i class="fas fa-search"></i> Check your status Reedem</h2>
-            <div class="check-container">
-                <div class="check-card fade-in">
-                    <div class="check-header">
-                        <i class="fas fa-key"></i>
-                        <h3>Input Your ID Reedem:</h3>
-                    </div>
-                    <div class="check-form">
-                        <div class="input-group">
-                            <input type="text" id="redeemId" placeholder="Contoh: REDXYZ123ABC">
-                            <button class="check-btn" id="checkBtn">
-                                <i class="fas fa-search"></i> Check
-                            </button>
-                        </div>
-                        <p class="input-hint">Masukkan ID reedem Anda untuk mengecek status</p>
-                    </div>
-                    <div class="loading-check" id="loadingCheck">
-                        <div class="spinner"></div>
-                        <p>Sedang mengecek...</p>
-                    </div>
+            <h2 class="section-title fade-in">Check your status Reedem</h2>
+            
+            <div class="check-card fade-in">
+                <div class="check-header">
+                    <i class="fas fa-search"></i>
+                    <h3>Input Your ID Reedem:</h3>
                 </div>
-
-                <div class="status-card fade-in">
-                    <div class="status-header">
-                        <i class="fas fa-info-circle"></i>
-                        <h3>Informasi Status</h3>
-                    </div>
-                    <div class="status-info">
-                        <div class="status-item">
-                            <span class="status-label">Active:</span>
-                            <span class="status-value active">✓ Reedem Aktif</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Disabled:</span>
-                            <span class="status-value disabled">✗ Reedem Nonaktif</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Reedem:</span>
-                            <span class="status-value success">✓ Berhasil Reedem</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Not Reedem:</span>
-                            <span class="status-value failed">✗ Belum Reedem</span>
-                        </div>
-                    </div>
+                
+                <div class="check-form">
+                    <input type="text" id="redeemIdInput" placeholder="Contoh: REDXYZ123ABC" maxlength="50">
+                    <button id="checkRedeemBtn">
+                        <span>Check</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                
+                <div class="check-loading" id="checkLoading">
+                    <div class="loading-spinner-small"></div>
+                    <span>Sedang mengecek...</span>
                 </div>
             </div>
         </section>
 
-        <!-- Redeem Details Popup -->
+        <!-- Popup Status Reedem -->
         <div class="popup-overlay" id="popupOverlay">
-            <div class="popup-container" id="popupContainer">
-                <button class="popup-close" id="popupClose">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="popup-container">
                 <div class="popup-header">
-                    <i class="fas fa-gift"></i>
-                    <h3>Detail Status Reedem</h3>
+                    <h3><i class="fas fa-info-circle"></i> Status Reedem</h3>
+                    <button class="popup-close" id="popupCloseBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div class="popup-content" id="popupContent">
-                    <!-- Data akan dimuat dari database -->
+                
+                <div class="popup-content">
+                    <div class="popup-info">
+                        <div class="info-item">
+                            <span class="info-label">Your ID Reedem:</span>
+                            <span class="info-value" id="popupRedeemId">-</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Status:</span>
+                            <span class="info-value" id="popupActiveStatus">-</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Active Server:</span>
+                            <span class="info-value" id="popupActiveServer">-</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Status Reedem:</span>
+                            <span class="status-badge" id="popupRedeemStatus">-</span>
+                        </div>
+                        
+                        <div class="info-details" id="redeemDetails">
+                            <h4><i class="fas fa-list"></i> Detail Reedem:</h4>
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <span class="detail-label">Server Sukses:</span>
+                                    <span class="detail-value" id="detailServer">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Android Sukses:</span>
+                                    <span class="detail-value" id="detailAndroid">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Reedem pada jam:</span>
+                                    <span class="detail-value" id="detailTime">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Percobaan ke:</span>
+                                    <span class="detail-value" id="detailAttempt">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="popup-footer">
+                    <button class="popup-action-btn" id="closePopupBtn">
+                        <i class="fas fa-check"></i> Tutup
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Footer -->
-        <footer class="footer" id="contact">
+        <footer class="footer" id="footer">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3><i class="fas fa-users"></i> Join Grup Kami</h3>
-                    <a href="https://wa.me/yournumber" class="whatsapp-btn" target="_blank">
+                    <h4>Join grup saya:</h4>
+                    <a href="https://wa.me/" class="social-link" target="_blank">
                         <i class="fab fa-whatsapp"></i> Join saluran
                     </a>
                 </div>
+                
                 <div class="footer-section">
-                    <h3><i class="fas fa-store"></i> ANGGAZYY MARKET</h3>
-                    <p>Platform reedem terpercaya dengan layanan 24/7</p>
+                    <h4>Anggazyy Market</h4>
+                    <p>Sistem cek status reedem terpercaya dan realtime</p>
                 </div>
+                
                 <div class="footer-section">
-                    <h3><i class="fas fa-clock"></i> Layanan</h3>
-                    <p>Buka 24 Jam / 7 Hari</p>
-                    <p>Support cepat & responsif</p>
+                    <h4>Fitur</h4>
+                    <p>• Cek status reedem</p>
+                    <p>• Statistik realtime</p>
+                    <p>• Responsive design</p>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>© Copyright ❤ 2025 Anggazyy Developer.</p>
+            
+            <div class="footer-copyright">
+                <p><i class="far fa-copyright"></i> Copyright ❤ 2025 Anggazyy Developer.</p>
             </div>
         </footer>
     </div>
