@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anggazyy Market - Payment Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <i class="fas fa-store fa-4x"></i>
+                <h1>Anggazyy Market</h1>
+            </div>
+            <div class="loading-spinner">
+                <div class="spinner-circle"></div>
+                <div class="spinner-circle"></div>
+                <div class="spinner-circle"></div>
+            </div>
+            <p class="loading-text">Loading premium experience...</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="logo">
+                    <i class="fas fa-store"></i>
+                    <h1>Anggazyy <span>Market</span></h1>
+                </div>
+                <nav class="nav-menu">
+                    <ul>
+                        <li><a href="#dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                        <li><a href="#statistics"><i class="fas fa-chart-bar"></i> Statistics</a></li>
+                        <li><a href="#check-redeem"><i class="fas fa-search"></i> Check Redeem</a></li>
+                        <li><a href="#contact"><i class="fas fa-phone-alt"></i> Contact</a></li>
+                    </ul>
+                </nav>
+                <div class="user-menu">
+                    <button class="btn-notification">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <button class="btn-profile">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section dashboard fade-in">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h2 class="animate-charcter">Hai, Selamat datang di Anggazyy Market</h2>
+                    <p class="subtitle">Disini kamu dapat melihat Status reedem kamu dan total reedem ya!</p>
+                    
+                    <div class="scroll-indicator">
+                        <a href="#statistics" class="scroll-btn">
+                            <i class="fas fa-chevron-down"></i>
+                            <span>Mulai!</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="stats-cards">
+                    <div class="card stat-card fade-in-delay-1">
+                        <div class="card-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Total Sukses</h3>
+                            <div class="counter" id="total-success">0</div>
+                            <p class="card-desc">Transaksi berhasil</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card fade-in-delay-2">
+                        <div class="card-icon">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Top Server</h3>
+                            <div class="counter" id="top-server">0</div>
+                            <p class="card-desc" id="top-server-name">Loading...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card fade-in-delay-3">
+                        <div class="card-icon">
+                            <i class="fab fa-android"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Top Version Android</h3>
+                            <div class="counter" id="top-android">0</div>
+                            <p class="card-desc" id="top-android-name">Loading...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card fade-in-delay-4">
+                        <div class="card-icon">
+                            <i class="fas fa-code-branch"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Best Combo</h3>
+                            <div class="counter" id="best-combo">0</div>
+                            <p class="card-desc">Kombinasi terbaik</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section id="statistics" class="section statistics">
+            <div class="container">
+                <h2 class="section-title"><i class="fas fa-chart-line"></i> Realtime Statistics</h2>
+                
+                <div class="stats-grid">
+                    <div class="card stat-detail-card">
+                        <div class="stat-header">
+                            <i class="fas fa-check-circle stat-icon"></i>
+                            <h3>Total Succes</h3>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-total-success">0</div>
+                            <div class="stat-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="success-progress"></div>
+                                </div>
+                                <span class="progress-text">Dari total <span id="total-redeems">0</span> reedem</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-detail-card">
+                        <div class="stat-header">
+                            <i class="fas fa-server stat-icon"></i>
+                            <h3>Top Server</h3>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-top-server">-</div>
+                            <div class="server-list" id="server-list">
+                                <p>Loading servers...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-detail-card">
+                        <div class="stat-header">
+                            <i class="fab fa-android stat-icon"></i>
+                            <h3>Top Version Android</h3>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-top-android">-</div>
+                            <div class="android-list" id="android-list">
+                                <p>Loading android versions...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-detail-card">
+                        <div class="stat-header">
+                            <i class="fas fa-code-branch stat-icon"></i>
+                            <h3>Best Combo</h3>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-best-combo">-</div>
+                            <div class="combo-info">
+                                <p><i class="fas fa-server"></i> Server: <span id="combo-server">-</span></p>
+                                <p><i class="fab fa-android"></i> Android: <span id="combo-android">-</span></p>
+                                <p><i class="fas fa-chart-bar"></i> Success Rate: <span id="combo-rate">0%</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Check Redeem Section -->
+        <section id="check-redeem" class="section check-redeem">
+            <div class="container">
+                <h2 class="section-title"><i class="fas fa-search"></i> Check Your Status Reedem</h2>
+                
+                <div class="redeem-card card">
+                    <div class="redeem-header">
+                        <h3><i class="fas fa-qrcode"></i> Input Your ID Reedem</h3>
+                        <p class="subtitle">Masukkan ID reedem Anda untuk mengecek status</p>
+                    </div>
+                    
+                    <div class="redeem-form">
+                        <div class="input-group">
+                            <i class="fas fa-key input-icon"></i>
+                            <input type="text" id="redeem-id" placeholder="Contoh: REDXYZ123ABC" maxlength="20">
+                            <button id="check-redeem-btn" class="btn-check">
+                                <i class="fas fa-search"></i> Check
+                            </button>
+                        </div>
+                        <div class="input-hint">
+                            <i class="fas fa-info-circle"></i> ID reedem terdiri dari 12 karakter kombinasi huruf dan angka
+                        </div>
+                    </div>
+                    
+                    <div class="check-status" id="check-status">
+                        <!-- Status akan muncul di sini -->
+                    </div>
+                    
+                    <div class="redeem-example">
+                        <h4><i class="fas fa-lightbulb"></i> Contoh ID Reedem Valid:</h4>
+                        <div class="example-ids">
+                            <span class="example-id">REDXYZ123ABC</span>
+                            <span class="example-id">REDXYZ456DEF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section contact">
+            <div class="container">
+                <h2 class="section-title"><i class="fas fa-users"></i> Join Komunitas Kami</h2>
+                
+                <div class="contact-grid">
+                    <div class="contact-card card">
+                        <div class="contact-icon">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <h3>Join Grup WhatsApp</h3>
+                        <p>Bergabunglah dengan grup WhatsApp kami untuk informasi terbaru dan bantuan langsung dari admin.</p>
+                        <a href="https://wa.me/6281234567890" class="btn-contact" target="_blank">
+                            <i class="fab fa-whatsapp"></i> Join Sekarang
+                        </a>
+                    </div>
+                    
+                    <div class="contact-card card">
+                        <div class="contact-icon">
+                            <i class="fas fa-broadcast-tower"></i>
+                        </div>
+                        <h3>Join Saluran Telegram</h3>
+                        <p>Ikuti saluran Telegram kami untuk mendapatkan update tentang produk baru dan promo eksklusif.</p>
+                        <a href="https://t.me/anggaazzychannel" class="btn-contact" target="_blank">
+                            <i class="fab fa-telegram"></i> Join Channel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-logo">
+                        <i class="fas fa-store"></i>
+                        <h3>Anggazyy <span>Market</span></h3>
+                        <p>Sistem pembayaran dan reedem terpercaya sejak 2022</p>
+                    </div>
+                    
+                    <div class="footer-links">
+                        <h4>Quick Links</h4>
+                        <ul>
+                            <li><a href="#dashboard"><i class="fas fa-chevron-right"></i> Dashboard</a></li>
+                            <li><a href="#statistics"><i class="fas fa-chevron-right"></i> Statistics</a></li>
+                            <li><a href="#check-redeem"><i class="fas fa-chevron-right"></i> Check Reedem</a></li>
+                            <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-contact">
+                        <h4>Contact Us</h4>
+                        <p><i class="fas fa-envelope"></i> support@anggazyy.com</p>
+                        <p><i class="fas fa-phone"></i> +62 812 3456 7890</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-facebook"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer-bottom">
+                    <p>© Copyright <i class="fas fa-heart"></i> 2025 Anggazyy Developer. All rights reserved.</p>
+                    <p class="footer-note">Made with passion for the best user experience</p>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Redeem Details Modal -->
+    <div id="redeem-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-ticket-alt"></i> Detail Status Reedem</h2>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="redeem-detail">
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fas fa-id-card"></i> Your ID Reedem:</span>
+                        <span class="detail-value" id="modal-redeem-id">-</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fas fa-check-circle"></i> Status:</span>
+                        <span class="detail-value status-badge" id="modal-status">Loading...</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fas fa-server"></i> Active Server:</span>
+                        <span class="detail-value" id="modal-server">-</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fas fa-exchange-alt"></i> Reedem Status:</span>
+                        <span class="detail-value status-badge" id="modal-redeem-status">Loading...</span>
+                    </div>
+                    
+                    <div class="detail-info" id="detail-info">
+                        <!-- Detail info akan muncul jika status reedem true -->
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button class="btn-secondary" id="close-modal">Tutup</button>
+                        <button class="btn-primary" id="share-status">
+                            <i class="fas fa-share-alt"></i> Bagikan Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
