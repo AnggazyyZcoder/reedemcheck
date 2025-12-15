@@ -1,7 +1,7 @@
 // Konfigurasi JSONBin.io
 // Ganti dengan JSONBin.io Anda yang sebenarnya
-const JSONBIN_BIN_ID = '66c0e8e6ad19ca34f8681af8'; // Ini contoh ID, ganti dengan ID bin Anda
-const JSONBIN_API_KEY = '$2a$10$Tz9L7q9L8V7c8V7c8V7c8OeF8c8V7c8V7c8V7c8V7c8V7c8V7c8V7c8'; // Contoh API key, ganti dengan milik Anda
+const JSONBIN_BIN_ID = '693fbc76d0ea881f402a4544'; // Ini contoh ID, ganti dengan ID bin Anda
+const JSONBIN_API_KEY = '$2a$10$FrRFp7JmBmpnrWofdI2GyOHCeiMwzhvrVQ.Hh2H3FaBCiFlkxh4c6'; // Contoh API key, ganti dengan milik Anda
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`;
 
 // Data contoh jika JSONBin.io tidak tersedia
