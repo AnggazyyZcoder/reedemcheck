@@ -15,6 +15,13 @@ let appData = {
     reedemHistory: []
 };
 
+// Inisialisasi Smooth Scroll Polyfill
+if ('scrollBehavior' in document.documentElement.style) {
+    // Browser support native smooth scroll
+} else {
+    // Polyfill akan di-load dari CDN
+}
+
 // Inisialisasi
 document.addEventListener('DOMContentLoaded', function() {
     // Setup loading screen
@@ -23,13 +30,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup event listeners
     setupEventListeners();
     
+    // Setup background animation
+    setupBackgroundAnimation();
+    
+    // Setup scroll animations
+    setupScrollAnimations();
+    
     // Load data dari database
     loadData();
 });
 
-// Setup loading screen
+// Setup loading screen dengan animasi baru
 function setupLoadingScreen() {
     const loadingScreen = document.getElementById('loadingScreen');
+    
+    // Create floating data points
+    createFloatingDataPoints();
     
     // Set timeout untuk menghilangkan loading screen setelah 3 detik
     setTimeout(() => {
@@ -42,18 +58,87 @@ function setupLoadingScreen() {
             
             // Trigger animasi fade in untuk semua element
             triggerFadeInAnimations();
+            
+            // Setup card animations
+            setupCardAnimations();
+            
+            // Setup tip animations
+            setupTipAnimations();
         }, 800);
     }, 3000);
 }
 
+// Create floating data points for background
+function createFloatingDataPoints() {
+    const container = document.querySelector('.animated-background');
+    
+    for (let i = 0; i < 30; i++) {
+        const point = document.createElement('div');
+        point.className = 'floating-data-point';
+        
+        // Random positioning
+        const size = Math.random() * 4 + 1;
+        const duration = Math.random() * 20 + 10;
+        const delay = Math.random() * 5;
+        
+        point.style.cssText = `
+            width: ${size}px;
+            height: ${size}px;
+            left: ${Math.random() * 100}%;
+            animation-delay: ${delay}s;
+            animation-duration: ${duration}s;
+        `;
+        
+        container.appendChild(point);
+    }
+}
+
+// Setup background animation effects
+function setupBackgroundAnimation() {
+    // Create additional floating elements
+    const container = document.querySelector('.animated-background');
+    
+    // Create connection lines
+    for (let i = 0; i < 5; i++) {
+        const line = document.createElement('div');
+        line.className = 'connection-line';
+        
+        line.style.cssText = `
+            position: absolute;
+            width: ${Math.random() * 100 + 50}px;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(138, 43, 226, 0.3) 50%, 
+                transparent 100%);
+            top: ${Math.random() * 100}%;
+            left: ${Math.random() * 100}%;
+            transform: rotate(${Math.random() * 360}deg);
+            animation: linePulse ${Math.random() * 10 + 5}s ease-in-out infinite;
+            opacity: ${Math.random() * 0.3 + 0.1};
+        `;
+        
+        container.appendChild(line);
+    }
+    
+    // Add CSS for line animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes linePulse {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.3; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 // Setup semua event listeners
 function setupEventListeners() {
-    // Button mulai
+    // Button mulai dengan smooth scroll
     const startBtn = document.getElementById('startBtn');
     startBtn.addEventListener('click', () => {
-        document.getElementById('statsSection').scrollIntoView({ 
-            behavior: 'smooth' 
-        });
+        const statsSection = document.getElementById('statsSection');
+        smoothScrollTo(statsSection, 1000);
     });
     
     // Button refresh
@@ -77,7 +162,7 @@ function setupEventListeners() {
     const applyComboBtn = document.getElementById('applyComboBtn');
     
     closeModalBtn.addEventListener('click', () => {
-        document.getElementById('comboModal').classList.remove('active');
+        closeComboModal();
     });
     
     copyComboBtn.addEventListener('click', copyComboToClipboard);
@@ -86,8 +171,148 @@ function setupEventListeners() {
     // Close modal ketika klik di luar
     document.getElementById('comboModal').addEventListener('click', (e) => {
         if (e.target === document.getElementById('comboModal')) {
-            document.getElementById('comboModal').classList.remove('active');
+            closeComboModal();
         }
+    });
+    
+    // Close modal dengan Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeComboModal();
+        }
+    });
+    
+    // Mencegah zoom dengan keyboard
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '0')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Mencegah zoom dengan wheel
+    document.addEventListener('wheel', (e) => {
+        if (e.ctrlKey) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+}
+
+// Smooth scroll function dengan easing
+function smoothScrollTo(element, duration) {
+    const start = window.pageYOffset;
+    const to = element.offsetTop - 100;
+    const change = to - start;
+    const startTime = performance.now();
+    
+    function animateScroll(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Cubic ease-in-out
+        const easeInOutCubic = progress < 0.5 
+            ? 4 * progress * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+        
+        window.scrollTo(0, start + change * easeInOutCubic);
+        
+        if (progress < 1) {
+            requestAnimationFrame(animateScroll);
+        }
+    }
+    
+    requestAnimationFrame(animateScroll);
+}
+
+// Setup scroll animations
+function setupScrollAnimations() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+                
+                // Animate stats cards
+                if (entry.target.classList.contains('stat-card')) {
+                    setTimeout(() => {
+                        entry.target.style.transform = 'translateY(0) scale(1)';
+                        entry.target.style.opacity = '1';
+                    }, entry.target.dataset.delay || 0);
+                }
+                
+                // Animate tip cards
+                if (entry.target.classList.contains('tip-card')) {
+                    setTimeout(() => {
+                        entry.target.style.transform = 'translateX(0)';
+                        entry.target.style.opacity = '1';
+                    }, entry.target.dataset.delay || 0);
+                }
+            }
+        });
+    }, observerOptions);
+    
+    // Observe semua element dengan class fade-in
+    document.querySelectorAll('.fade-in').forEach((el, index) => {
+        if (el.classList.contains('stat-card')) {
+            el.style.setProperty('--card-index', index);
+            el.dataset.delay = index * 100;
+        }
+        if (el.classList.contains('tip-card')) {
+            el.style.setProperty('--tip-index', index);
+            el.dataset.delay = index * 100;
+        }
+        observer.observe(el);
+    });
+}
+
+// Setup card animations
+function setupCardAnimations() {
+    const cards = document.querySelectorAll('.stat-card');
+    cards.forEach((card, index) => {
+        // Add hover effect with animation
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-10px) scale(1.02)';
+            card.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0) scale(1)';
+        });
+        
+        // Add click animation
+        card.addEventListener('click', () => {
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                card.style.transform = 'scale(1)';
+            }, 150);
+        });
+    });
+}
+
+// Setup tip animations
+function setupTipAnimations() {
+    const tips = document.querySelectorAll('.tip-card');
+    tips.forEach((tip, index) => {
+        // Add hover effect
+        tip.addEventListener('mouseenter', () => {
+            tip.style.transform = 'translateY(-5px) rotateX(5deg)';
+            const icon = tip.querySelector('.tip-icon i');
+            if (icon) {
+                icon.style.transform = 'scale(1.2) rotate(10deg)';
+                icon.style.transition = 'all 0.3s ease';
+            }
+        });
+        
+        tip.addEventListener('mouseleave', () => {
+            tip.style.transform = 'translateY(0) rotateX(0)';
+            const icon = tip.querySelector('.tip-icon i');
+            if (icon) {
+                icon.style.transform = 'scale(1) rotate(0)';
+            }
+        });
     });
 }
 
@@ -116,7 +341,7 @@ async function loadData() {
         // Update UI dengan data baru
         updateUI();
         
-        // Animasikan angka
+        // Animasikan angka dengan efek yang lebih smooth
         animateNumbers();
         
         // Update history table
@@ -174,34 +399,56 @@ function updateUI() {
     updateModalDetails();
 }
 
-// Animasikan angka dari 0 ke nilai target
+// Animasikan angka dari 0 ke nilai target dengan easing
 function animateNumbers() {
     const totalSuccess = document.getElementById('totalSuccess');
     const serverCount = document.getElementById('serverCount');
     const androidCount = document.getElementById('androidCount');
     
-    animateValue(totalSuccess, 0, appData.totalReedem, 1500);
-    animateValue(serverCount, 0, appData.TopServer[Object.keys(appData.TopServer)[0]] || 0, 1500);
-    animateValue(androidCount, 0, appData.TopAndroid[Object.keys(appData.TopAndroid)[0]] || 0, 1500);
+    animateValue(totalSuccess, 0, appData.totalReedem, 1500, 'easeOutCubic');
+    animateValue(serverCount, 0, appData.TopServer[Object.keys(appData.TopServer)[0]] || 0, 1500, 'easeOutCubic');
+    animateValue(androidCount, 0, appData.TopAndroid[Object.keys(appData.TopAndroid)[0]] || 0, 1500, 'easeOutCubic');
 }
 
-// Fungsi animasi angka
-function animateValue(element, start, end, duration) {
+// Fungsi animasi angka dengan easing
+function animateValue(element, start, end, duration, easing = 'linear') {
     if (start === end) return;
     
+    const startTime = performance.now();
     const range = end - start;
-    const increment = end > start ? 1 : -1;
-    const stepTime = Math.abs(Math.floor(duration / range));
-    let current = start;
     
-    const timer = setInterval(() => {
-        current += increment;
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+    
+    function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+    
+    function getEasingValue(t) {
+        switch(easing) {
+            case 'easeOutCubic': return easeOutCubic(t);
+            case 'easeInOutCubic': return easeInOutCubic(t);
+            default: return t;
+        }
+    }
+    
+    function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = getEasingValue(progress);
+        const current = Math.floor(start + range * easedProgress);
+        
         element.textContent = current;
         
-        if (current === end) {
-            clearInterval(timer);
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            element.textContent = end;
         }
-    }, stepTime);
+    }
+    
+    requestAnimationFrame(animate);
 }
 
 // Update history table
@@ -212,9 +459,10 @@ function updateHistoryTable() {
     // Ambil 5 data terbaru
     const recentHistory = appData.reedemHistory.slice(-5).reverse();
     
-    recentHistory.forEach(record => {
+    recentHistory.forEach((record, index) => {
         const row = document.createElement('tr');
         row.className = 'fade-in';
+        row.style.animationDelay = `${index * 0.1}s`;
         
         // Format timestamp
         const date = new Date(record.timestamp);
@@ -251,10 +499,44 @@ function updateModalDetails() {
     }
 }
 
-// Show combo modal
+// Show combo modal dengan animasi
 function showComboModal() {
     updateModalDetails();
-    document.getElementById('comboModal').classList.add('active');
+    const modal = document.getElementById('comboModal');
+    modal.classList.add('active');
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    
+    // Add animation to modal content
+    const modalContent = modal.querySelector('.modal-content');
+    modalContent.style.transform = 'translateY(30px) scale(0.9)';
+    modalContent.style.opacity = '0';
+    
+    setTimeout(() => {
+        modalContent.style.transform = 'translateY(0) scale(1)';
+        modalContent.style.opacity = '1';
+        modalContent.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    }, 10);
+}
+
+// Close combo modal dengan animasi
+function closeComboModal() {
+    const modal = document.getElementById('comboModal');
+    const modalContent = modal.querySelector('.modal-content');
+    
+    modalContent.style.transform = 'translateY(0) scale(1)';
+    modalContent.style.opacity = '1';
+    
+    setTimeout(() => {
+        modalContent.style.transform = 'translateY(30px) scale(0.9)';
+        modalContent.style.opacity = '0';
+        
+        setTimeout(() => {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }, 300);
+    }, 10);
 }
 
 // Copy combo to clipboard
@@ -267,6 +549,16 @@ function copyComboToClipboard() {
         
         navigator.clipboard.writeText(comboText).then(() => {
             showToast('Combo berhasil disalin!', 'success');
+            
+            // Add animation to copy button
+            const copyBtn = document.getElementById('copyComboBtn');
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Disalin!';
+            copyBtn.style.background = 'linear-gradient(45deg, #00FF7F, #00CC66)';
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Combo';
+                copyBtn.style.background = '';
+            }, 2000);
         }).catch(err => {
             console.error('Failed to copy: ', err);
             showToast('Gagal menyalin combo', 'error');
@@ -278,13 +570,24 @@ function copyComboToClipboard() {
 function applyBestCombo() {
     showToast('Menerapkan combo terbaik...', 'info');
     
+    // Add loading animation to apply button
+    const applyBtn = document.getElementById('applyComboBtn');
+    const originalText = applyBtn.innerHTML;
+    applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+    applyBtn.disabled = true;
+    
     // Simulasi proses apply combo
     setTimeout(() => {
         // Tambah data reedem baru
         simulateNewReedem();
         
         showToast('Combo berhasil diterapkan!', 'success');
-        document.getElementById('comboModal').classList.remove('active');
+        
+        // Restore button state
+        applyBtn.innerHTML = originalText;
+        applyBtn.disabled = false;
+        
+        closeComboModal();
     }, 1500);
 }
 
@@ -323,13 +626,28 @@ function simulateNewReedem() {
         // Update combo count
         appData.BestCombo[comboName]++;
         
-        // Update UI
-        updateUI();
+        // Update UI dengan animasi
+        updateUIWithAnimation();
         updateHistoryTable();
         
         // Simpan ke database
         saveToDatabase();
     }
+}
+
+// Update UI dengan animasi
+function updateUIWithAnimation() {
+    // Animate the updated numbers
+    animateNumbers();
+    
+    // Add pulse animation to updated cards
+    const cards = document.querySelectorAll('.stat-card');
+    cards.forEach(card => {
+        card.classList.add('pulse');
+        setTimeout(() => {
+            card.classList.remove('pulse');
+        }, 1000);
+    });
 }
 
 // Simpan data ke database (simulasi POST)
@@ -389,7 +707,7 @@ function loadFallbackData() {
     updateHistoryTable();
 }
 
-// Show toast notification
+// Show toast notification dengan animasi
 function showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
     const toastIcon = toast.querySelector('.toast-icon');
@@ -398,15 +716,15 @@ function showToast(message, type = 'info') {
     // Set warna berdasarkan type
     switch(type) {
         case 'success':
-            toast.style.background = 'linear-gradient(45deg, #00FF7F, #00CC66)';
+            toast.style.background = 'linear-gradient(45deg, var(--success), #00CC66)';
             toastIcon.className = 'fas fa-check-circle toast-icon';
             break;
         case 'error':
-            toast.style.background = 'linear-gradient(45deg, #FF4444, #CC0000)';
+            toast.style.background = 'linear-gradient(45deg, var(--danger), #CC0000)';
             toastIcon.className = 'fas fa-exclamation-circle toast-icon';
             break;
         case 'info':
-            toast.style.background = 'linear-gradient(45deg, #00BFFF, #0080FF)';
+            toast.style.background = 'linear-gradient(45deg, var(--info), #0080FF)';
             toastIcon.className = 'fas fa-info-circle toast-icon';
             break;
     }
@@ -414,9 +732,20 @@ function showToast(message, type = 'info') {
     toastMessage.textContent = message;
     toast.classList.add('show');
     
+    // Animate in
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+        toast.style.opacity = '1';
+    }, 10);
+    
     // Auto hide setelah 3 detik
     setTimeout(() => {
-        toast.classList.remove('show');
+        toast.style.transform = 'translateX(150%)';
+        toast.style.opacity = '0';
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 500);
     }, 3000);
 }
 
@@ -431,52 +760,34 @@ function triggerFadeInAnimations() {
     });
 }
 
-// Background animation effect
-function createBackgroundEffects() {
-    const container = document.querySelector('.container');
-    
-    // Create floating particles
-    for (let i = 0; i < 20; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'floating-particle';
-        particle.style.cssText = `
-            position: absolute;
-            width: ${Math.random() * 4 + 1}px;
-            height: ${Math.random() * 4 + 1}px;
-            background: rgba(138, 43, 226, ${Math.random() * 0.3 + 0.1});
-            border-radius: 50%;
-            top: ${Math.random() * 100}%;
-            left: ${Math.random() * 100}%;
-            z-index: -1;
-            animation: floatParticle ${Math.random() * 20 + 10}s linear infinite;
-        `;
-        
-        container.appendChild(particle);
+// Add CSS animations for pulse effect
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { 
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        50% { 
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(138, 43, 226, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        100% { 
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
     }
     
-    // Add CSS for particle animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes floatParticle {
-            0% {
-                transform: translate(0, 0) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-    `;
+    .stat-card.pulse {
+        animation: pulse 1s ease-in-out;
+    }
     
-    document.head.appendChild(style);
-}
-
-// Inisialisasi background effects setelah loading
-setTimeout(createBackgroundEffects, 3500);
+    .animate-in {
+        animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+`;
+document.head.appendChild(style);

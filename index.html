@@ -2,20 +2,29 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- VIEWPORT DIUPDATE: Mencegah Zoom In/Out -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Anggazyy Market - Statistik Reedem</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Background Image dari URL yang Diberikan -->
+    <div class="background-overlay"></div>
+    <div class="animated-background"></div>
+
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-content">
-            <div class="loading-spinner">
-                <div class="spinner-circle"></div>
-                <div class="spinner-circle"></div>
-                <div class="spinner-circle"></div>
+            <div class="animated-logo">
+                <div class="logo-orbital">
+                    <div class="orbital-ring"></div>
+                    <div class="orbital-dot" style="--delay: 0s"></div>
+                    <div class="orbital-dot" style="--delay: 0.2s"></div>
+                    <div class="orbital-dot" style="--delay: 0.4s"></div>
+                    <i class="fas fa-chart-line logo-center"></i>
+                </div>
             </div>
             <h2 class="loading-text">Loading Anggazyy Market</h2>
             <div class="loading-progress">
@@ -58,10 +67,17 @@
                 </div>
             </div>
             <div class="hero-illustration">
-                <div class="pulse-circle"></div>
-                <div class="pulse-circle"></div>
-                <div class="pulse-circle"></div>
-                <i class="fas fa-chart-bar hero-icon"></i>
+                <!-- Animated Data Chart -->
+                <div class="data-chart">
+                    <div class="chart-bar" style="--height: 80%; --delay: 0s"></div>
+                    <div class="chart-bar" style="--height: 60%; --delay: 0.1s"></div>
+                    <div class="chart-bar" style="--height: 90%; --delay: 0.2s"></div>
+                    <div class="chart-bar" style="--height: 70%; --delay: 0.3s"></div>
+                    <div class="chart-bar" style="--height: 85%; --delay: 0.4s"></div>
+                </div>
+                <div class="floating-element el-1"><i class="fas fa-server"></i></div>
+                <div class="floating-element el-2"><i class="fab fa-android"></i></div>
+                <div class="floating-element el-3"><i class="fas fa-bolt"></i></div>
             </div>
         </section>
 
@@ -160,17 +176,23 @@
                 </div>
                 <div class="tips-content">
                     <div class="tip-card">
-                        <i class="fas fa-clock"></i>
+                        <div class="tip-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
                         <h4>Waktu Optimal</h4>
                         <p>Gunakan server pada jam 00:00 - 06:00 untuk kecepatan maksimal</p>
                     </div>
                     <div class="tip-card">
-                        <i class="fas fa-wifi"></i>
+                        <div class="tip-icon">
+                            <i class="fas fa-wifi"></i>
+                        </div>
                         <h4>Koneksi Stabil</h4>
                         <p>Pastikan sinyal WiFi/Data kuat sebelum melakukan reedem</p>
                     </div>
                     <div class="tip-card">
-                        <i class="fas fa-redo"></i>
+                        <div class="tip-icon">
+                            <i class="fas fa-redo"></i>
+                        </div>
                         <h4>Reset Cache</h4>
                         <p>Reset cache game sebelum mencoba reedem untuk hasil terbaik</p>
                     </div>
@@ -182,21 +204,23 @@
                 <div class="section-title">
                     <i class="fas fa-history"></i> Riwayat Reedem Terbaru
                 </div>
-                <div class="history-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th><i class="fas fa-server"></i> Server</th>
-                                <th><i class="fab fa-android"></i> Android</th>
-                                <th><i class="fas fa-retweet"></i> Attempts</th>
-                                <th><i class="fas fa-clock"></i> Waktu</th>
-                                <th><i class="fas fa-mobile"></i> Device ID</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyTable">
-                            <!-- Data akan diisi oleh JavaScript -->
-                        </tbody>
-                    </table>
+                <div class="history-table-container">
+                    <div class="history-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-server"></i> Server</th>
+                                    <th><i class="fab fa-android"></i> Android</th>
+                                    <th><i class="fas fa-retweet"></i> Attempts</th>
+                                    <th><i class="fas fa-clock"></i> Waktu</th>
+                                    <th><i class="fas fa-mobile"></i> Device ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTable">
+                                <!-- Data akan diisi oleh JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
@@ -237,9 +261,9 @@
         </footer>
     </div>
 
-    <!-- Modal Combo Details -->
+    <!-- Modal Combo Details - DIKECILKAN -->
     <div class="modal" id="comboModal">
-        <div class="modal-content">
+        <div class="modal-content compact">
             <div class="modal-header">
                 <h3><i class="fas fa-fire"></i> Detail Best Combo</h3>
                 <button class="modal-close" id="closeModal">&times;</button>
@@ -297,6 +321,8 @@
         </div>
     </div>
 
+    <!-- Smooth Scroll Polyfill for Safari -->
+    <script src="https://unpkg.com/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
