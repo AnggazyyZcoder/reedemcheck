@@ -1,407 +1,482 @@
-// Konfigurasi API JSONBIN
-const JSONBIN_ID = '693fbc76d0ea881f402a4544';
-const API_KEY = '$2a$10$FrRFp7JmBmpnrWofdI2GyOHCeiMwzhvrVQ.Hh2H3FaBCiFlkxh4c6';
-const API_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
-
-// Data simulasi jika API tidak tersedia (hanya untuk fallback)
-const fallbackData = {
-    "redeems": [
-        {
-            "id": "REDXYZ123ABC",
-            "key": "USER_KEY_HERE",
-            "createdAt": "2024-01-01T12:00:00.000Z",
-            "active": "Active",
-            "status": false,
-            "deviceId": "device_abc123xyz",
-            "details": null
-        },
-        {
-            "id": "REDXYZ456DEF",
-            "key": "USER_KEY_HERE_2",
-            "createdAt": "2024-01-01T13:00:00.000Z",
-            "active": "Disable",
-            "status": true,
-            "deviceId": "device_def456ghi",
-            "details": {
-                "server": "Thailand",
-                "android": "Android 10",
-                "time": "13:30:45",
-                "attempt": 5
-            }
-        },
-        {
-            "id": "REDXYZ789GHI",
-            "key": "USER_KEY_HERE_3",
-            "createdAt": "2024-01-01T14:00:00.000Z",
-            "active": "Active",
-            "status": true,
-            "deviceId": "device_ghi789jkl",
-            "details": {
-                "server": "Singapore",
-                "android": "Android 11",
-                "time": "14:15:30",
-                "attempt": 3
-            }
-        },
-        {
-            "id": "REDXYZ012JKL",
-            "key": "USER_KEY_HERE_4",
-            "createdAt": "2024-01-01T15:00:00.000Z",
-            "active": "Active",
-            "status": true,
-            "deviceId": "device_jkl012mno",
-            "details": {
-                "server": "Indonesia",
-                "android": "Android 12",
-                "time": "15:45:20",
-                "attempt": 2
-            }
-        }
-    ]
+// Konfigurasi API
+const API_CONFIG = {
+    BIN_ID: '6940ef47ae596e708f9d2bb1',
+    API_KEY: '$2a$10$cZQwFNLXAb1VEjuYEGqgLO4f7i08ro3s4VGw7SJS2jUEsrXGv3VZy',
+    BASE_URL: 'https://api.jsonbin.io/v3/b'
 };
 
-// Variabel global
-let redeemData = null;
-let stats = {
-    totalSuccess: 0,
-    topServer: '',
-    topAndroid: '',
-    bestCombo: ''
+// State aplikasi
+let appData = {
+    totalReedem: 0,
+    totalPercobaan: 0,
+    topAndroid: {},
+    topServer: {},
+    bestCombo: {},
+    reedemHistory: []
 };
 
-// Fungsi untuk inisialisasi
+// Inisialisasi
 document.addEventListener('DOMContentLoaded', function() {
     // Setup loading screen
-    setTimeout(() => {
-        const loadingScreen = document.getElementById('loadingScreen');
-        loadingScreen.classList.add('fade-out');
-        
-        // Setelah loading selesai, muat data
-        setTimeout(() => {
-            loadingScreen.style.display = 'none';
-            initializeApp();
-        }, 800);
-    }, 3000);
+    setupLoadingScreen();
     
     // Setup event listeners
     setupEventListeners();
     
-    // Setup scroll animations
-    setupScrollAnimations();
+    // Load data dari database
+    loadData();
 });
 
-// Fungsi untuk inisialisasi aplikasi
-async function initializeApp() {
-    // Load data dari JSONBIN
-    await loadRedeemData();
+// Setup loading screen
+function setupLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
     
-    // Hitung statistik
-    calculateStats();
-    
-    // Animasikan statistik
-    animateStats();
+    // Set timeout untuk menghilangkan loading screen setelah 3 detik
+    setTimeout(() => {
+        loadingScreen.classList.add('fade-out');
+        
+        // Hapus dari DOM setelah animasi selesai
+        setTimeout(() => {
+            loadingScreen.remove();
+            document.getElementById('mainContent').style.opacity = '1';
+            
+            // Trigger animasi fade in untuk semua element
+            triggerFadeInAnimations();
+        }, 800);
+    }, 3000);
 }
 
-// Fungsi untuk load data dari JSONBIN
-async function loadRedeemData() {
-    try {
-        console.log('Mengambil data dari JSONBIN...');
-        
-        const response = await fetch(API_URL, {
-            method: 'GET',
-            headers: {
-                'X-Master-Key': API_KEY,
-                'Content-Type': 'application/json'
-            }
+// Setup semua event listeners
+function setupEventListeners() {
+    // Button mulai
+    const startBtn = document.getElementById('startBtn');
+    startBtn.addEventListener('click', () => {
+        document.getElementById('statsSection').scrollIntoView({ 
+            behavior: 'smooth' 
         });
+    });
+    
+    // Button refresh
+    const refreshBtn = document.getElementById('refreshBtn');
+    refreshBtn.addEventListener('click', () => {
+        refreshBtn.classList.add('spinning');
+        loadData();
+        
+        setTimeout(() => {
+            refreshBtn.classList.remove('spinning');
+        }, 500);
+    });
+    
+    // Button coba combo
+    const tryComboBtn = document.getElementById('tryComboBtn');
+    tryComboBtn.addEventListener('click', showComboModal);
+    
+    // Modal buttons
+    const closeModalBtn = document.getElementById('closeModal');
+    const copyComboBtn = document.getElementById('copyComboBtn');
+    const applyComboBtn = document.getElementById('applyComboBtn');
+    
+    closeModalBtn.addEventListener('click', () => {
+        document.getElementById('comboModal').classList.remove('active');
+    });
+    
+    copyComboBtn.addEventListener('click', copyComboToClipboard);
+    applyComboBtn.addEventListener('click', applyBestCombo);
+    
+    // Close modal ketika klik di luar
+    document.getElementById('comboModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('comboModal')) {
+            document.getElementById('comboModal').classList.remove('active');
+        }
+    });
+}
+
+// Load data dari database JSONBin.io
+async function loadData() {
+    try {
+        showToast('Memuat data terbaru...', 'info');
+        
+        const response = await fetch(
+            `${API_CONFIG.BASE_URL}/${API_CONFIG.BIN_ID}/latest`,
+            {
+                headers: {
+                    'X-Master-Key': API_CONFIG.API_KEY,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
-        console.log('Data berhasil diambil:', data);
+        const result = await response.json();
+        appData = result.record;
         
-        // Gunakan data dari API jika tersedia
-        if (data && data.record && data.record.redeems) {
-            redeemData = data.record;
-        } else {
-            // Fallback ke data simulasi
-            console.warn('Data dari API tidak valid, menggunakan fallback data');
-            redeemData = fallbackData;
-        }
+        // Update UI dengan data baru
+        updateUI();
+        
+        // Animasikan angka
+        animateNumbers();
+        
+        // Update history table
+        updateHistoryTable();
+        
+        showToast('Data berhasil diupdate!', 'success');
+        
     } catch (error) {
-        console.error('Error mengambil data dari JSONBIN:', error);
-        console.warn('Menggunakan fallback data karena API error');
-        // Fallback ke data simulasi jika API error
-        redeemData = fallbackData;
+        console.error('Error loading data:', error);
+        showToast('Gagal memuat data. Menggunakan data fallback.', 'error');
+        
+        // Fallback data jika API gagal
+        loadFallbackData();
     }
 }
 
-// Fungsi untuk menghitung statistik
-function calculateStats() {
-    if (!redeemData || !redeemData.redeems) return;
+// Update UI dengan data terbaru
+function updateUI() {
+    // Update total success dengan animasi
+    const totalSuccess = document.getElementById('totalSuccess');
+    const successRate = document.getElementById('successRate');
     
-    const redeems = redeemData.redeems;
+    const rate = appData.totalPercobaan > 0 
+        ? Math.round((appData.totalReedem / appData.totalPercobaan) * 100)
+        : 0;
     
-    // Hitung total sukses
-    stats.totalSuccess = redeems.filter(r => r.status === true).length;
+    successRate.textContent = `${rate}%`;
     
-    // Hitung server terpopuler
-    const serverCounts = {};
-    redeems.forEach(r => {
-        if (r.details && r.details.server) {
-            const server = r.details.server;
-            serverCounts[server] = (serverCounts[server] || 0) + 1;
-        }
-    });
+    // Update top server
+    const topServer = document.getElementById('topServer');
+    const serverCount = document.getElementById('serverCount');
     
-    if (Object.keys(serverCounts).length > 0) {
-        stats.topServer = Object.keys(serverCounts).reduce((a, b) => 
-            serverCounts[a] > serverCounts[b] ? a : b
-        );
-    } else {
-        stats.topServer = "Tidak ada data";
-    }
+    const serverName = Object.keys(appData.TopServer)[0] || 'Tidak tersedia';
+    const serverValue = appData.TopServer[serverName] || 0;
     
-    // Hitung versi Android terpopuler
-    const androidCounts = {};
-    redeems.forEach(r => {
-        if (r.details && r.details.android) {
-            const android = r.details.android;
-            androidCounts[android] = (androidCounts[android] || 0) + 1;
-        }
-    });
+    topServer.textContent = serverName;
+    serverCount.textContent = serverValue;
     
-    if (Object.keys(androidCounts).length > 0) {
-        stats.topAndroid = Object.keys(androidCounts).reduce((a, b) => 
-            androidCounts[a] > androidCounts[b] ? a : b
-        );
-    } else {
-        stats.topAndroid = "Tidak ada data";
-    }
+    // Update top android
+    const topAndroid = document.getElementById('topAndroid');
+    const androidCount = document.getElementById('androidCount');
     
-    // Hitung best combo (server + android dengan sukses tertinggi)
-    const comboCounts = {};
-    redeems.forEach(r => {
-        if (r.status === true && r.details && r.details.server && r.details.android) {
-            const combo = `${r.details.server} + ${r.details.android}`;
-            comboCounts[combo] = (comboCounts[combo] || 0) + 1;
-        }
-    });
+    const androidName = Object.keys(appData.TopAndroid)[0] || 'Tidak tersedia';
+    const androidValue = appData.TopAndroid[androidName] || 0;
     
-    if (Object.keys(comboCounts).length > 0) {
-        stats.bestCombo = Object.keys(comboCounts).reduce((a, b) => 
-            comboCounts[a] > comboCounts[b] ? a : b
-        );
-    } else {
-        stats.bestCombo = "Tidak ada data";
-    }
+    topAndroid.textContent = androidName;
+    androidCount.textContent = androidValue;
+    
+    // Update best combo
+    const bestCombo = document.getElementById('bestCombo');
+    const comboName = Object.keys(appData.BestCombo)[0] || 'Tidak tersedia';
+    bestCombo.textContent = comboName.replace('|', ' + ');
+    
+    // Update modal details
+    updateModalDetails();
 }
 
-// Fungsi untuk animasi statistik
-function animateStats() {
-    // Animasikan total sukses
-    const totalSuccessEl = document.getElementById('totalSuccess');
-    animateValue(totalSuccessEl, 0, stats.totalSuccess, 2000);
+// Animasikan angka dari 0 ke nilai target
+function animateNumbers() {
+    const totalSuccess = document.getElementById('totalSuccess');
+    const serverCount = document.getElementById('serverCount');
+    const androidCount = document.getElementById('androidCount');
     
-    // Update statistik lainnya
-    document.getElementById('topServer').textContent = stats.topServer;
-    document.getElementById('topAndroid').textContent = stats.topAndroid;
-    document.getElementById('bestCombo').textContent = stats.bestCombo;
+    animateValue(totalSuccess, 0, appData.totalReedem, 1500);
+    animateValue(serverCount, 0, appData.TopServer[Object.keys(appData.TopServer)[0]] || 0, 1500);
+    animateValue(androidCount, 0, appData.TopAndroid[Object.keys(appData.TopAndroid)[0]] || 0, 1500);
 }
 
-// Fungsi untuk animasi angka
+// Fungsi animasi angka
 function animateValue(element, start, end, duration) {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const value = Math.floor(progress * (end - start) + start);
-        element.textContent = value;
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
+    if (start === end) return;
+    
+    const range = end - start;
+    const increment = end > start ? 1 : -1;
+    const stepTime = Math.abs(Math.floor(duration / range));
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        element.textContent = current;
+        
+        if (current === end) {
+            clearInterval(timer);
         }
-    };
-    window.requestAnimationFrame(step);
+    }, stepTime);
 }
 
-// Fungsi untuk setup event listeners
-function setupEventListeners() {
-    // Navbar menu
-    const navbarMenu = document.getElementById('navbarMenu');
-    const dropdownMenu = document.getElementById('dropdownMenu');
+// Update history table
+function updateHistoryTable() {
+    const historyTable = document.getElementById('historyTable');
+    historyTable.innerHTML = '';
     
-    navbarMenu.addEventListener('click', () => {
-        dropdownMenu.classList.toggle('active');
-    });
+    // Ambil 5 data terbaru
+    const recentHistory = appData.reedemHistory.slice(-5).reverse();
     
-    // Tutup dropdown ketika klik di luar
-    document.addEventListener('click', (e) => {
-        if (!navbarMenu.contains(e.target) && !dropdownMenu.contains(e.target)) {
-            dropdownMenu.classList.remove('active');
-        }
-    });
-    
-    // Scroll down button
-    const scrollDownBtn = document.getElementById('scrollDownBtn');
-    scrollDownBtn.addEventListener('click', () => {
-        document.getElementById('stats').scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
+    recentHistory.forEach(record => {
+        const row = document.createElement('tr');
+        row.className = 'fade-in';
+        
+        // Format timestamp
+        const date = new Date(record.timestamp);
+        const formattedTime = date.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
         });
-    });
-    
-    // Check redeem button
-    const checkRedeemBtn = document.getElementById('checkRedeemBtn');
-    const redeemIdInput = document.getElementById('redeemIdInput');
-    const checkLoading = document.getElementById('checkLoading');
-    
-    checkRedeemBtn.addEventListener('click', () => {
-        const redeemId = redeemIdInput.value.trim();
         
-        if (!redeemId) {
-            alert('Harap masukkan ID Reedem!');
-            redeemIdInput.focus();
-            return;
+        row.innerHTML = `
+            <td><span class="server-badge">${record.server}</span></td>
+            <td>${record.androidVersion}</td>
+            <td><span class="attempts-badge">${record.attempts}</span></td>
+            <td>${formattedTime}</td>
+            <td><span class="device-id">${record.deviceId.substring(0, 10)}...</span></td>
+        `;
+        
+        historyTable.appendChild(row);
+    });
+}
+
+// Update modal details
+function updateModalDetails() {
+    const comboName = Object.keys(appData.BestCombo)[0];
+    
+    if (comboName) {
+        const [server, android] = comboName.split('|');
+        const successCount = appData.BestCombo[comboName];
+        
+        document.getElementById('modalServer').textContent = server;
+        document.getElementById('modalAndroid').textContent = android;
+        document.getElementById('modalRate').textContent = 
+            `Success: ${successCount} kali`;
+    }
+}
+
+// Show combo modal
+function showComboModal() {
+    updateModalDetails();
+    document.getElementById('comboModal').classList.add('active');
+}
+
+// Copy combo to clipboard
+function copyComboToClipboard() {
+    const comboName = Object.keys(appData.BestCombo)[0];
+    
+    if (comboName) {
+        const [server, android] = comboName.split('|');
+        const comboText = `Server: ${server} | Android: ${android}`;
+        
+        navigator.clipboard.writeText(comboText).then(() => {
+            showToast('Combo berhasil disalin!', 'success');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            showToast('Gagal menyalin combo', 'error');
+        });
+    }
+}
+
+// Apply best combo
+function applyBestCombo() {
+    showToast('Menerapkan combo terbaik...', 'info');
+    
+    // Simulasi proses apply combo
+    setTimeout(() => {
+        // Tambah data reedem baru
+        simulateNewReedem();
+        
+        showToast('Combo berhasil diterapkan!', 'success');
+        document.getElementById('comboModal').classList.remove('active');
+    }, 1500);
+}
+
+// Simulasi reedem baru (untuk demo)
+function simulateNewReedem() {
+    const comboName = Object.keys(appData.BestCombo)[0];
+    
+    if (comboName) {
+        const [server, android] = comboName.split('|');
+        
+        // Update data lokal
+        appData.totalReedem++;
+        appData.totalPercobaan++;
+        
+        // Update history
+        const newRecord = {
+            server: server,
+            androidVersion: android,
+            attempts: 1,
+            timestamp: new Date().toISOString(),
+            deviceId: `device_${Math.random().toString(36).substr(2, 9)}`
+        };
+        
+        appData.reedemHistory.push(newRecord);
+        
+        // Update server count
+        if (appData.TopServer[server]) {
+            appData.TopServer[server]++;
         }
         
-        // Tampilkan loading
-        checkLoading.classList.add('active');
+        // Update android count
+        if (appData.TopAndroid[android]) {
+            appData.TopAndroid[android]++;
+        }
         
-        // Simulasi delay 3 detik
+        // Update combo count
+        appData.BestCombo[comboName]++;
+        
+        // Update UI
+        updateUI();
+        updateHistoryTable();
+        
+        // Simpan ke database
+        saveToDatabase();
+    }
+}
+
+// Simpan data ke database (simulasi POST)
+async function saveToDatabase() {
+    try {
+        const response = await fetch(
+            `${API_CONFIG.BASE_URL}/${API_CONFIG.BIN_ID}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'X-Master-Key': API_CONFIG.API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(appData)
+            }
+        );
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        console.log('Data saved to database');
+        
+    } catch (error) {
+        console.error('Error saving data:', error);
+        showToast('Gagal menyimpan ke database', 'error');
+    }
+}
+
+// Fallback data jika API gagal
+function loadFallbackData() {
+    appData = {
+        totalReedem: 156,
+        totalPercobaan: 200,
+        TopAndroid: {
+            "Android 12.0": 120
+        },
+        TopServer: {
+            "Singapore": 145
+        },
+        BestCombo: {
+            "Singapore|Android 12.0": 85
+        },
+        reedemHistory: [
+            {
+                "server": "Singapore",
+                "androidVersion": "Android 12.0",
+                "attempts": 1,
+                "timestamp": new Date().toISOString(),
+                "deviceId": "device_demo_001"
+            }
+        ]
+    };
+    
+    updateUI();
+    animateNumbers();
+    updateHistoryTable();
+}
+
+// Show toast notification
+function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    const toastIcon = toast.querySelector('.toast-icon');
+    const toastMessage = toast.querySelector('.toast-message');
+    
+    // Set warna berdasarkan type
+    switch(type) {
+        case 'success':
+            toast.style.background = 'linear-gradient(45deg, #00FF7F, #00CC66)';
+            toastIcon.className = 'fas fa-check-circle toast-icon';
+            break;
+        case 'error':
+            toast.style.background = 'linear-gradient(45deg, #FF4444, #CC0000)';
+            toastIcon.className = 'fas fa-exclamation-circle toast-icon';
+            break;
+        case 'info':
+            toast.style.background = 'linear-gradient(45deg, #00BFFF, #0080FF)';
+            toastIcon.className = 'fas fa-info-circle toast-icon';
+            break;
+    }
+    
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+    
+    // Auto hide setelah 3 detik
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// Trigger fade in animations untuk semua element
+function triggerFadeInAnimations() {
+    const elements = document.querySelectorAll('.fade-in');
+    
+    elements.forEach((element, index) => {
         setTimeout(() => {
-            checkRedeem(redeemId);
-            checkLoading.classList.remove('active');
-        }, 3000);
-    });
-    
-    // Enter key untuk input
-    redeemIdInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            checkRedeemBtn.click();
-        }
-    });
-    
-    // Popup close buttons
-    const popupCloseBtn = document.getElementById('popupCloseBtn');
-    const closePopupBtn = document.getElementById('closePopupBtn');
-    const popupOverlay = document.getElementById('popupOverlay');
-    
-    popupCloseBtn.addEventListener('click', closePopup);
-    closePopupBtn.addEventListener('click', closePopup);
-    
-    // Tutup popup ketika klik di luar
-    popupOverlay.addEventListener('click', (e) => {
-        if (e.target === popupOverlay) {
-            closePopup();
-        }
+            element.style.animationDelay = `${index * 0.1}s`;
+        }, 100);
     });
 }
 
-// Fungsi untuk cek reedem
-function checkRedeem(redeemId) {
-    if (!redeemData || !redeemData.redeems) {
-        alert('Data belum dimuat. Silakan coba lagi.');
-        return;
+// Background animation effect
+function createBackgroundEffects() {
+    const container = document.querySelector('.container');
+    
+    // Create floating particles
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'floating-particle';
+        particle.style.cssText = `
+            position: absolute;
+            width: ${Math.random() * 4 + 1}px;
+            height: ${Math.random() * 4 + 1}px;
+            background: rgba(138, 43, 226, ${Math.random() * 0.3 + 0.1});
+            border-radius: 50%;
+            top: ${Math.random() * 100}%;
+            left: ${Math.random() * 100}%;
+            z-index: -1;
+            animation: floatParticle ${Math.random() * 20 + 10}s linear infinite;
+        `;
+        
+        container.appendChild(particle);
     }
     
-    // Cari reedem berdasarkan ID
-    const redeem = redeemData.redeems.find(r => r.id === redeemId);
-    
-    if (!redeem) {
-        alert(`ID Reedem "${redeemId}" tidak ditemukan!`);
-        return;
-    }
-    
-    // Tampilkan popup dengan informasi reedem
-    showRedeemPopup(redeem);
-}
-
-// Fungsi untuk menampilkan popup reedem
-function showRedeemPopup(redeem) {
-    // Update informasi di popup
-    document.getElementById('popupRedeemId').textContent = redeem.id;
-    document.getElementById('popupActiveStatus').textContent = redeem.active;
-    document.getElementById('popupActiveServer').textContent = redeem.details ? redeem.details.server : 'Tidak tersedia';
-    
-    // Update status reedem
-    const redeemStatusEl = document.getElementById('popupRedeemStatus');
-    if (redeem.status) {
-        redeemStatusEl.textContent = 'Reedem';
-        redeemStatusEl.className = 'status-badge success';
-    } else {
-        redeemStatusEl.textContent = 'Not Reedem';
-        redeemStatusEl.className = 'status-badge danger';
-    }
-    
-    // Update detail jika ada
-    const redeemDetails = document.getElementById('redeemDetails');
-    if (redeem.details) {
-        document.getElementById('detailServer').textContent = redeem.details.server;
-        document.getElementById('detailAndroid').textContent = redeem.details.android;
-        document.getElementById('detailTime').textContent = redeem.details.time;
-        document.getElementById('detailAttempt').textContent = redeem.details.attempt;
-        redeemDetails.style.display = 'block';
-    } else {
-        redeemDetails.style.display = 'none';
-    }
-    
-    // Tampilkan popup
-    const popupOverlay = document.getElementById('popupOverlay');
-    popupOverlay.classList.add('active');
-}
-
-// Fungsi untuk menutup popup
-function closePopup() {
-    const popupOverlay = document.getElementById('popupOverlay');
-    popupOverlay.classList.remove('active');
-    
-    // Reset input
-    document.getElementById('redeemIdInput').value = '';
-}
-
-// Fungsi untuk setup scroll animations
-function setupScrollAnimations() {
-    // Observers untuk animasi fade-in
-    const fadeElements = document.querySelectorAll('.fade-in');
-    
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
+    // Add CSS for particle animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes floatParticle {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+                opacity: 0;
             }
-        });
-    }, observerOptions);
-    
-    fadeElements.forEach(element => {
-        observer.observe(element);
-    });
-    
-    // Smooth scroll untuk link navbar
-    const navLinks = document.querySelectorAll('.dropdown-menu a');
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetId = link.getAttribute('href').substring(1);
-            const targetElement = document.getElementById(targetId);
-            
-            if (targetElement) {
-                // Tutup dropdown menu
-                document.getElementById('dropdownMenu').classList.remove('active');
-                
-                // Scroll ke target
-                targetElement.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+            10% {
+                opacity: 1;
             }
-        });
-    });
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    `;
+    
+    document.head.appendChild(style);
 }
+
+// Inisialisasi background effects setelah loading
+setTimeout(createBackgroundEffects, 3500);
