@@ -23,13 +23,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup event listeners
     setupEventListeners();
     
+    // Setup animations
+    setupAnimations();
+    
     // Load data dari database
     loadData();
 });
 
-// Setup loading screen
+// Setup loading screen dengan animasi
 function setupLoadingScreen() {
     const loadingScreen = document.getElementById('loadingScreen');
+    const progressBar = document.querySelector('.progress-bar');
+    
+    // Animate progress bar
+    progressBar.style.width = '100%';
     
     // Set timeout untuk menghilangkan loading screen setelah 3 detik
     setTimeout(() => {
@@ -42,6 +49,9 @@ function setupLoadingScreen() {
             
             // Trigger animasi fade in untuk semua element
             triggerFadeInAnimations();
+            
+            // Setup smooth scroll
+            setupSmoothScroll();
         }, 800);
     }, 3000);
 }
@@ -51,9 +61,7 @@ function setupEventListeners() {
     // Button mulai
     const startBtn = document.getElementById('startBtn');
     startBtn.addEventListener('click', () => {
-        document.getElementById('statsSection').scrollIntoView({ 
-            behavior: 'smooth' 
-        });
+        smoothScrollTo('#statsSection', 1000);
     });
     
     // Button refresh
@@ -83,12 +91,88 @@ function setupEventListeners() {
     copyComboBtn.addEventListener('click', copyComboToClipboard);
     applyComboBtn.addEventListener('click', applyBestCombo);
     
-    // Close modal ketika klik di luar
+    // Close modal ketika klik di luar atau tekan ESC
     document.getElementById('comboModal').addEventListener('click', (e) => {
         if (e.target === document.getElementById('comboModal')) {
             document.getElementById('comboModal').classList.remove('active');
         }
     });
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.getElementById('comboModal').classList.remove('active');
+        }
+    });
+}
+
+// Setup animations untuk element
+function setupAnimations() {
+    // Add animation delays to cards
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        card.style.setProperty('--card-index', index);
+        card.style.animationDelay = `${0.1 * index}s`;
+    });
+    
+    // Add animation delays to tip cards
+    const tipCards = document.querySelectorAll('.tip-card');
+    tipCards.forEach((card, index) => {
+        card.style.setProperty('--tip-index', index);
+    });
+    
+    // Add animation delays to combo items
+    const comboItems = document.querySelectorAll('.combo-item');
+    comboItems.forEach((item, index) => {
+        item.style.setProperty('--item-index', index);
+    });
+    
+    // Add animation delays to footer sections
+    const footerSections = document.querySelectorAll('.footer-section');
+    footerSections.forEach((section, index) => {
+        section.style.setProperty('--section-index', index);
+    });
+}
+
+// Setup smooth scroll dengan easing
+function setupSmoothScroll() {
+    const links = document.querySelectorAll('a[href^="#"]');
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            smoothScrollTo(targetId, 1000);
+        });
+    });
+}
+
+// Smooth scroll function dengan easing
+function smoothScrollTo(target, duration) {
+    const targetElement = document.querySelector(target);
+    if (!targetElement) return;
+    
+    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+    const startPosition = window.pageYOffset;
+    const distance = targetPosition - startPosition;
+    let startTime = null;
+    
+    function animation(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const run = easeInOutCubic(timeElapsed, startPosition, distance, duration);
+        window.scrollTo(0, run);
+        if (timeElapsed < duration) requestAnimationFrame(animation);
+    }
+    
+    function easeInOutCubic(t, b, c, d) {
+        t /= d / 2;
+        if (t < 1) return c / 2 * t * t * t + b;
+        t -= 2;
+        return c / 2 * (t * t * t + 2) + b;
+    }
+    
+    requestAnimationFrame(animation);
 }
 
 // Load data dari database JSONBin.io
@@ -145,6 +229,9 @@ function updateUI() {
     
     successRate.textContent = `${rate}%`;
     
+    // Animate success rate
+    animateNumber(successRate, 0, rate, 1000);
+    
     // Update top server
     const topServer = document.getElementById('topServer');
     const serverCount = document.getElementById('serverCount');
@@ -174,34 +261,47 @@ function updateUI() {
     updateModalDetails();
 }
 
-// Animasikan angka dari 0 ke nilai target
+// Animasikan angka dari 0 ke nilai target dengan easing
 function animateNumbers() {
     const totalSuccess = document.getElementById('totalSuccess');
     const serverCount = document.getElementById('serverCount');
     const androidCount = document.getElementById('androidCount');
     
-    animateValue(totalSuccess, 0, appData.totalReedem, 1500);
-    animateValue(serverCount, 0, appData.TopServer[Object.keys(appData.TopServer)[0]] || 0, 1500);
-    animateValue(androidCount, 0, appData.TopAndroid[Object.keys(appData.TopAndroid)[0]] || 0, 1500);
+    animateNumber(totalSuccess, 0, appData.totalReedem, 1500);
+    animateNumber(serverCount, 0, appData.TopServer[Object.keys(appData.TopServer)[0]] || 0, 1500);
+    animateNumber(androidCount, 0, appData.TopAndroid[Object.keys(appData.TopAndroid)[0]] || 0, 1500);
 }
 
-// Fungsi animasi angka
-function animateValue(element, start, end, duration) {
+// Fungsi animasi angka dengan easing
+function animateNumber(element, start, end, duration) {
     if (start === end) return;
     
     const range = end - start;
-    const increment = end > start ? 1 : -1;
-    const stepTime = Math.abs(Math.floor(duration / range));
-    let current = start;
+    let startTime = null;
     
-    const timer = setInterval(() => {
-        current += increment;
+    function animation(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+        
+        // Easing function
+        const easeProgress = easeOutCubic(progress);
+        const current = Math.floor(start + (range * easeProgress));
+        
         element.textContent = current;
         
-        if (current === end) {
-            clearInterval(timer);
+        if (progress < 1) {
+            requestAnimationFrame(animation);
+        } else {
+            element.textContent = end;
         }
-    }, stepTime);
+    }
+    
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+    
+    requestAnimationFrame(animation);
 }
 
 // Update history table
@@ -212,9 +312,10 @@ function updateHistoryTable() {
     // Ambil 5 data terbaru
     const recentHistory = appData.reedemHistory.slice(-5).reverse();
     
-    recentHistory.forEach(record => {
+    recentHistory.forEach((record, index) => {
         const row = document.createElement('tr');
         row.className = 'fade-in';
+        row.style.animationDelay = `${index * 0.1}s`;
         
         // Format timestamp
         const date = new Date(record.timestamp);
@@ -251,10 +352,19 @@ function updateModalDetails() {
     }
 }
 
-// Show combo modal
+// Show combo modal dengan animasi
 function showComboModal() {
     updateModalDetails();
-    document.getElementById('comboModal').classList.add('active');
+    const modal = document.getElementById('comboModal');
+    modal.classList.add('active');
+    
+    // Animate modal content
+    const modalContent = modal.querySelector('.modal-content');
+    modalContent.style.animation = 'modalSlideIn 0.4s ease-out';
+    
+    setTimeout(() => {
+        modalContent.style.animation = '';
+    }, 400);
 }
 
 // Copy combo to clipboard
@@ -278,6 +388,10 @@ function copyComboToClipboard() {
 function applyBestCombo() {
     showToast('Menerapkan combo terbaik...', 'info');
     
+    // Animate apply button
+    const applyBtn = document.getElementById('applyComboBtn');
+    applyBtn.classList.add('applying');
+    
     // Simulasi proses apply combo
     setTimeout(() => {
         // Tambah data reedem baru
@@ -285,6 +399,7 @@ function applyBestCombo() {
         
         showToast('Combo berhasil diterapkan!', 'success');
         document.getElementById('comboModal').classList.remove('active');
+        applyBtn.classList.remove('applying');
     }, 1500);
 }
 
@@ -323,13 +438,27 @@ function simulateNewReedem() {
         // Update combo count
         appData.BestCombo[comboName]++;
         
-        // Update UI
+        // Update UI dengan animasi
         updateUI();
         updateHistoryTable();
+        
+        // Animate updated elements
+        animateUpdatedElements();
         
         // Simpan ke database
         saveToDatabase();
     }
+}
+
+// Animate elements that were updated
+function animateUpdatedElements() {
+    // Animate success card
+    const successCard = document.querySelector('.stat-icon.success').closest('.stat-card');
+    successCard.style.animation = 'cardPulse 0.5s ease-out';
+    
+    setTimeout(() => {
+        successCard.style.animation = '';
+    }, 500);
 }
 
 // Simpan data ke database (simulasi POST)
@@ -389,25 +518,31 @@ function loadFallbackData() {
     updateHistoryTable();
 }
 
-// Show toast notification
+// Show toast notification dengan animasi
 function showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
     const toastIcon = toast.querySelector('.toast-icon');
     const toastMessage = toast.querySelector('.toast-message');
     
+    // Remove existing classes
+    toast.classList.remove('error', 'info', 'success');
+    
     // Set warna berdasarkan type
     switch(type) {
         case 'success':
-            toast.style.background = 'linear-gradient(45deg, #00FF7F, #00CC66)';
+            toast.style.background = 'linear-gradient(45deg, var(--success), #00CC66)';
             toastIcon.className = 'fas fa-check-circle toast-icon';
+            toast.classList.add('success');
             break;
         case 'error':
-            toast.style.background = 'linear-gradient(45deg, #FF4444, #CC0000)';
+            toast.style.background = 'linear-gradient(45deg, var(--danger), #CC0000)';
             toastIcon.className = 'fas fa-exclamation-circle toast-icon';
+            toast.classList.add('error');
             break;
         case 'info':
-            toast.style.background = 'linear-gradient(45deg, #00BFFF, #0080FF)';
+            toast.style.background = 'linear-gradient(45deg, var(--info), #0080FF)';
             toastIcon.className = 'fas fa-info-circle toast-icon';
+            toast.classList.add('info');
             break;
     }
     
@@ -436,47 +571,110 @@ function createBackgroundEffects() {
     const container = document.querySelector('.container');
     
     // Create floating particles
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 15; i++) {
         const particle = document.createElement('div');
         particle.className = 'floating-particle';
+        
+        // Random position and size
+        const size = Math.random() * 3 + 1;
+        const posX = Math.random() * 100;
+        const posY = Math.random() * 100;
+        const duration = Math.random() * 15 + 10;
+        const delay = Math.random() * 5;
+        
         particle.style.cssText = `
-            position: absolute;
-            width: ${Math.random() * 4 + 1}px;
-            height: ${Math.random() * 4 + 1}px;
-            background: rgba(138, 43, 226, ${Math.random() * 0.3 + 0.1});
+            width: ${size}px;
+            height: ${size}px;
+            background: rgba(138, 43, 226, ${Math.random() * 0.2 + 0.1});
             border-radius: 50%;
-            top: ${Math.random() * 100}%;
-            left: ${Math.random() * 100}%;
+            position: fixed;
+            top: ${posY}%;
+            left: ${posX}%;
             z-index: -1;
-            animation: floatParticle ${Math.random() * 20 + 10}s linear infinite;
+            animation: floatParticle ${duration}s linear ${delay}s infinite;
         `;
         
+        // Add custom animation for this particle
+        const keyframes = `
+            @keyframes floatParticle_${i} {
+                0% {
+                    transform: translate(0, 0) rotate(0deg);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: ${Math.random() * 0.5 + 0.3};
+                }
+                90% {
+                    opacity: ${Math.random() * 0.5 + 0.3};
+                }
+                100% {
+                    transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(${Math.random() * 360}deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        
+        const style = document.createElement('style');
+        style.textContent = keyframes;
+        document.head.appendChild(style);
+        
+        particle.style.animationName = `floatParticle_${i}`;
         container.appendChild(particle);
     }
-    
-    // Add CSS for particle animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes floatParticle {
-            0% {
-                transform: translate(0, 0) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-    `;
-    
-    document.head.appendChild(style);
 }
 
 // Inisialisasi background effects setelah loading
 setTimeout(createBackgroundEffects, 3500);
+
+// Prevent zoom on mobile
+document.addEventListener('touchmove', function(e) {
+    if (e.scale !== 1) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
+// Add CSS animation for modal slide in
+const modalAnimation = `
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    @keyframes cardPulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        50% {
+            transform: scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+    }
+    
+    .applying {
+        animation: applyingAnimation 1.5s ease-in-out;
+    }
+    
+    @keyframes applyingAnimation {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = modalAnimation;
+document.head.appendChild(styleSheet);
