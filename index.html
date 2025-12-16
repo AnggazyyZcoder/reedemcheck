@@ -2,18 +2,22 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#8A2BE2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anggazyy Market - Statistik Reedem</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Background Image -->
+    <div class="background-image"></div>
+    
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-content">
             <div class="loading-spinner">
+                <div class="spinner-circle"></div>
+                <div class="spinner-circle"></div>
                 <div class="spinner-circle"></div>
                 <div class="spinner-circle"></div>
                 <div class="spinner-circle"></div>
@@ -240,52 +244,55 @@
 
     <!-- Modal Combo Details -->
     <div class="modal" id="comboModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-fire"></i> Detail Best Combo</h3>
-                <button class="modal-close" id="closeModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="combo-details">
-                    <div class="combo-item">
-                        <i class="fas fa-server"></i>
-                        <div>
-                            <h4>Server</h4>
-                            <p id="modalServer">-</p>
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-fire"></i> Detail Best Combo</h3>
+                    <button class="modal-close" id="closeModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="combo-details">
+                        <div class="combo-item">
+                            <i class="fas fa-server"></i>
+                            <div>
+                                <h4>Server</h4>
+                                <p id="modalServer">-</p>
+                            </div>
+                        </div>
+                        <div class="combo-item">
+                            <i class="fab fa-android"></i>
+                            <div>
+                                <h4>Android Version</h4>
+                                <p id="modalAndroid">-</p>
+                            </div>
+                        </div>
+                        <div class="combo-item">
+                            <i class="fas fa-chart-line"></i>
+                            <div>
+                                <h4>Success Rate</h4>
+                                <p id="modalRate">-</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="combo-item">
-                        <i class="fab fa-android"></i>
-                        <div>
-                            <h4>Android Version</h4>
-                            <p id="modalAndroid">-</p>
-                        </div>
-                    </div>
-                    <div class="combo-item">
-                        <i class="fas fa-chart-line"></i>
-                        <div>
-                            <h4>Success Rate</h4>
-                            <p id="modalRate">-</p>
-                        </div>
+                    <div class="modal-tips">
+                        <h4><i class="fas fa-lightbulb"></i> Cara Menggunakan:</h4>
+                        <ol>
+                            <li>Pastikan koneksi internet stabil</li>
+                            <li>Gunakan versi Android yang sesuai</li>
+                            <li>Pilih server yang direkomendasikan</li>
+                            <li>Lakukan reedem pada waktu optimal</li>
+                        </ol>
                     </div>
                 </div>
-                <div class="modal-tips">
-                    <h4><i class="fas fa-lightbulb"></i> Cara Menggunakan:</h4>
-                    <ol>
-                        <li>Pastikan koneksi internet stabil</li>
-                        <li>Gunakan versi Android yang sesuai</li>
-                        <li>Pilih server yang direkomendasikan</li>
-                        <li>Lakukan reedem pada waktu optimal</li>
-                    </ol>
+                <div class="modal-footer">
+                    <button class="modal-btn" id="copyComboBtn">
+                        <i class="fas fa-copy"></i> Copy Combo
+                    </button>
+                    <button class="modal-btn primary" id="applyComboBtn">
+                        <i class="fas fa-check"></i> Terapkan Combo
+                    </button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn" id="copyComboBtn">
-                    <i class="fas fa-copy"></i> Copy Combo
-                </button>
-                <button class="modal-btn primary" id="applyComboBtn">
-                    <i class="fas fa-check"></i> Terapkan Combo
-                </button>
             </div>
         </div>
     </div>

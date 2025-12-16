@@ -17,29 +17,21 @@ let appData = {
 
 // Inisialisasi
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Website Anggazyy Market loaded');
-    
     // Setup loading screen
     setupLoadingScreen();
     
     // Setup event listeners
     setupEventListeners();
     
+    // Setup scroll animations
+    setupScrollAnimations();
+    
     // Load data dari database
     loadData();
     
-    // Enable scrolling
-    enableScrolling();
+    // Setup smooth scroll untuk semua anchor links
+    setupSmoothScroll();
 });
-
-// Enable scrolling function
-function enableScrolling() {
-    document.body.style.overflow = 'auto';
-    document.body.style.height = 'auto';
-    document.body.style.position = 'relative';
-    
-    console.log('Scrolling enabled');
-}
 
 // Setup loading screen
 function setupLoadingScreen() {
@@ -47,7 +39,7 @@ function setupLoadingScreen() {
     const progressBar = document.querySelector('.progress-bar');
     
     // Animate progress bar
-    progressBar.style.width = '100%';
+    progressBar.style.animation = 'loading 3s cubic-bezier(0.65, 0, 0.35, 1) forwards';
     
     // Set timeout untuk menghilangkan loading screen setelah 3 detik
     setTimeout(() => {
@@ -58,139 +50,119 @@ function setupLoadingScreen() {
             loadingScreen.remove();
             document.getElementById('mainContent').style.opacity = '1';
             
-            // Enable scrolling after loading
-            enableScrolling();
-            
-            console.log('Loading screen removed, scrolling should work now');
+            // Trigger animasi fade in untuk semua element
+            triggerScrollAnimations();
         }, 800);
     }, 3000);
 }
 
 // Setup semua event listeners
 function setupEventListeners() {
-    console.log('Setting up event listeners');
-    
     // Button mulai
     const startBtn = document.getElementById('startBtn');
-    if (startBtn) {
-        startBtn.addEventListener('click', () => {
-            console.log('Start button clicked');
-            smoothScrollTo('#statsSection');
+    startBtn.addEventListener('click', () => {
+        document.getElementById('statsSection').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
         });
-    }
+    });
     
     // Button refresh
     const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-            console.log('Refresh button clicked');
-            refreshBtn.classList.add('spinning');
-            loadData();
-            
-            setTimeout(() => {
-                refreshBtn.classList.remove('spinning');
-            }, 500);
-        });
-    }
+    refreshBtn.addEventListener('click', () => {
+        refreshBtn.classList.add('spinning');
+        loadData();
+        
+        setTimeout(() => {
+            refreshBtn.classList.remove('spinning');
+        }, 500);
+    });
     
     // Button coba combo
     const tryComboBtn = document.getElementById('tryComboBtn');
-    if (tryComboBtn) {
-        tryComboBtn.addEventListener('click', showComboModal);
-    }
+    tryComboBtn.addEventListener('click', showComboModal);
     
     // Modal buttons
     const closeModalBtn = document.getElementById('closeModal');
     const copyComboBtn = document.getElementById('copyComboBtn');
     const applyComboBtn = document.getElementById('applyComboBtn');
     
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', () => {
-            document.getElementById('comboModal').classList.remove('active');
-        });
-    }
+    closeModalBtn.addEventListener('click', () => {
+        document.getElementById('comboModal').classList.remove('active');
+    });
     
-    if (copyComboBtn) {
-        copyComboBtn.addEventListener('click', copyComboToClipboard);
-    }
-    
-    if (applyComboBtn) {
-        applyComboBtn.addEventListener('click', applyBestCombo);
-    }
+    copyComboBtn.addEventListener('click', copyComboToClipboard);
+    applyComboBtn.addEventListener('click', applyBestCombo);
     
     // Close modal ketika klik di luar
-    const modal = document.getElementById('comboModal');
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-            }
-        });
-    }
+    document.querySelector('.modal-overlay').addEventListener('click', () => {
+        document.getElementById('comboModal').classList.remove('active');
+    });
     
-    // Close modal dengan ESC
+    // Close modal dengan Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             document.getElementById('comboModal').classList.remove('active');
         }
     });
+}
+
+// Setup scroll animations
+function setupScrollAnimations() {
+    // Inisialisasi Intersection Observer untuk animasi scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
     
-    // Test scrolling
-    document.addEventListener('wheel', (e) => {
-        console.log('Wheel event fired', e.deltaY);
-    });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
     
-    document.addEventListener('touchmove', (e) => {
-        console.log('Touch move event fired');
-    }, { passive: true });
-    
-    // Test click events
-    document.addEventListener('click', (e) => {
-        console.log('Click event at:', e.target.tagName);
+    // Observe semua element yang perlu di-animate
+    document.querySelectorAll('.stat-card, .tips-section, .history-section, .footer, .tip-card').forEach(el => {
+        observer.observe(el);
     });
 }
 
-// Smooth scroll function
-function smoothScrollTo(targetSelector, duration = 800) {
-    const targetElement = document.querySelector(targetSelector);
-    if (!targetElement) {
-        console.error('Target element not found:', targetSelector);
-        return;
-    }
-    
-    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
-    const startPosition = window.pageYOffset;
-    const distance = targetPosition - startPosition;
-    let startTime = null;
-    
-    function animation(currentTime) {
-        if (startTime === null) startTime = currentTime;
-        const timeElapsed = currentTime - startTime;
-        const progress = Math.min(timeElapsed / duration, 1);
-        
-        // Easing function
-        const easeProgress = easeOutCubic(progress);
-        const run = startPosition + distance * easeProgress;
-        
-        window.scrollTo(0, run);
-        
-        if (timeElapsed < duration) {
-            requestAnimationFrame(animation);
+// Setup smooth scroll untuk semua anchor links
+function setupSmoothScroll() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+}
+
+// Trigger scroll animations on load
+function triggerScrollAnimations() {
+    // Force trigger animations for elements in viewport
+    const elements = document.querySelectorAll('.stat-card, .tips-section, .history-section, .footer, .tip-card');
+    elements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+            el.classList.add('visible');
         }
-    }
-    
-    function easeOutCubic(t) {
-        return 1 - Math.pow(1 - t, 3);
-    }
-    
-    requestAnimationFrame(animation);
-    console.log('Smooth scrolling to:', targetSelector);
+    });
 }
 
 // Load data dari database JSONBin.io
 async function loadData() {
     try {
-        console.log('Loading data from API...');
         showToast('Memuat data terbaru...', 'info');
         
         const response = await fetch(
@@ -209,8 +181,6 @@ async function loadData() {
         
         const result = await response.json();
         appData = result.record;
-        
-        console.log('Data loaded successfully:', appData);
         
         // Update UI dengan data baru
         updateUI();
@@ -234,9 +204,7 @@ async function loadData() {
 
 // Update UI dengan data terbaru
 function updateUI() {
-    console.log('Updating UI with new data');
-    
-    // Update total success
+    // Update total success dengan animasi
     const totalSuccess = document.getElementById('totalSuccess');
     const successRate = document.getElementById('successRate');
     
@@ -244,9 +212,7 @@ function updateUI() {
         ? Math.round((appData.totalReedem / appData.totalPercobaan) * 100)
         : 0;
     
-    if (successRate) {
-        successRate.textContent = `${rate}%`;
-    }
+    successRate.textContent = `${rate}%`;
     
     // Update top server
     const topServer = document.getElementById('topServer');
@@ -255,13 +221,8 @@ function updateUI() {
     const serverName = Object.keys(appData.TopServer)[0] || 'Tidak tersedia';
     const serverValue = appData.TopServer[serverName] || 0;
     
-    if (topServer) {
-        topServer.textContent = serverName;
-    }
-    
-    if (serverCount) {
-        serverCount.textContent = serverValue;
-    }
+    topServer.textContent = serverName;
+    serverCount.textContent = serverValue;
     
     // Update top android
     const topAndroid = document.getElementById('topAndroid');
@@ -270,21 +231,13 @@ function updateUI() {
     const androidName = Object.keys(appData.TopAndroid)[0] || 'Tidak tersedia';
     const androidValue = appData.TopAndroid[androidName] || 0;
     
-    if (topAndroid) {
-        topAndroid.textContent = androidName;
-    }
-    
-    if (androidCount) {
-        androidCount.textContent = androidValue;
-    }
+    topAndroid.textContent = androidName;
+    androidCount.textContent = androidValue;
     
     // Update best combo
     const bestCombo = document.getElementById('bestCombo');
     const comboName = Object.keys(appData.BestCombo)[0] || 'Tidak tersedia';
-    
-    if (bestCombo) {
-        bestCombo.textContent = comboName.replace('|', ' + ');
-    }
+    bestCombo.textContent = comboName.replace('|', ' + ');
     
     // Update modal details
     updateModalDetails();
@@ -292,28 +245,18 @@ function updateUI() {
 
 // Animasikan angka dari 0 ke nilai target
 function animateNumbers() {
-    console.log('Animating numbers');
-    
     const totalSuccess = document.getElementById('totalSuccess');
     const serverCount = document.getElementById('serverCount');
     const androidCount = document.getElementById('androidCount');
     
-    if (totalSuccess) {
-        animateValue(totalSuccess, 0, appData.totalReedem, 1500);
-    }
-    
-    if (serverCount) {
-        animateValue(serverCount, 0, appData.TopServer[Object.keys(appData.TopServer)[0]] || 0, 1500);
-    }
-    
-    if (androidCount) {
-        animateValue(androidCount, 0, appData.TopAndroid[Object.keys(appData.TopAndroid)[0]] || 0, 1500);
-    }
+    animateValue(totalSuccess, 0, appData.totalReedem, 1500);
+    animateValue(serverCount, 0, appData.TopServer[Object.keys(appData.TopServer)[0]] || 0, 1500);
+    animateValue(androidCount, 0, appData.TopAndroid[Object.keys(appData.TopAndroid)[0]] || 0, 1500);
 }
 
 // Fungsi animasi angka
 function animateValue(element, start, end, duration) {
-    if (start === end || !element) return;
+    if (start === end) return;
     
     const range = end - start;
     const increment = end > start ? 1 : -1;
@@ -322,7 +265,7 @@ function animateValue(element, start, end, duration) {
     
     const timer = setInterval(() => {
         current += increment;
-        element.textContent = current;
+        element.textContent = current.toLocaleString();
         
         if (current === end) {
             clearInterval(timer);
@@ -333,27 +276,15 @@ function animateValue(element, start, end, duration) {
 // Update history table
 function updateHistoryTable() {
     const historyTable = document.getElementById('historyTable');
-    if (!historyTable) return;
-    
     historyTable.innerHTML = '';
     
     // Ambil 5 data terbaru
-    const recentHistory = appData.reedemHistory ? appData.reedemHistory.slice(-5).reverse() : [];
+    const recentHistory = appData.reedemHistory.slice(-5).reverse();
     
-    if (recentHistory.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td colspan="5" style="text-align: center; padding: 2rem;">
-                <i class="fas fa-history"></i> Belum ada riwayat reedem
-            </td>
-        `;
-        historyTable.appendChild(row);
-        return;
-    }
-    
-    recentHistory.forEach(record => {
+    recentHistory.forEach((record, index) => {
         const row = document.createElement('tr');
         row.className = 'fade-in';
+        row.style.animationDelay = `${index * 0.1}s`;
         
         // Format timestamp
         const date = new Date(record.timestamp);
@@ -364,11 +295,11 @@ function updateHistoryTable() {
         });
         
         row.innerHTML = `
-            <td><span class="server-badge">${record.server || '-'}</span></td>
-            <td>${record.androidVersion || '-'}</td>
-            <td><span class="attempts-badge">${record.attempts || '0'}</span></td>
+            <td><span class="server-badge">${record.server}</span></td>
+            <td>${record.androidVersion}</td>
+            <td><span class="attempts-badge">${record.attempts}</span></td>
             <td>${formattedTime}</td>
-            <td><span class="device-id">${record.deviceId ? record.deviceId.substring(0, 10) + '...' : '-'}</span></td>
+            <td><span class="device-id">${record.deviceId.substring(0, 10)}...</span></td>
         `;
         
         historyTable.appendChild(row);
@@ -383,35 +314,24 @@ function updateModalDetails() {
         const [server, android] = comboName.split('|');
         const successCount = appData.BestCombo[comboName];
         
-        const modalServer = document.getElementById('modalServer');
-        const modalAndroid = document.getElementById('modalAndroid');
-        const modalRate = document.getElementById('modalRate');
-        
-        if (modalServer) modalServer.textContent = server;
-        if (modalAndroid) modalAndroid.textContent = android;
-        if (modalRate) modalRate.textContent = `Success: ${successCount} kali`;
+        document.getElementById('modalServer').textContent = server;
+        document.getElementById('modalAndroid').textContent = android;
+        document.getElementById('modalRate').textContent = 
+            `Success: ${successCount} kali`;
     }
 }
 
 // Show combo modal
 function showComboModal() {
-    console.log('Showing combo modal');
     updateModalDetails();
+    document.getElementById('comboModal').classList.add('active');
     
-    const modal = document.getElementById('comboModal');
-    if (modal) {
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
-    }
-}
-
-// Hide combo modal
-function hideComboModal() {
-    const modal = document.getElementById('comboModal');
-    if (modal) {
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto'; // Re-enable scrolling
-    }
+    // Tambah efek masuk untuk modal content
+    const modalContent = document.querySelector('.modal-content');
+    modalContent.style.animation = 'none';
+    setTimeout(() => {
+        modalContent.style.animation = '';
+    }, 10);
 }
 
 // Copy combo to clipboard
@@ -420,7 +340,7 @@ function copyComboToClipboard() {
     
     if (comboName) {
         const [server, android] = comboName.split('|');
-        const comboText = `Server: ${server} | Android: ${android}`;
+        const comboText = `Server: ${server} | Android Version: ${android}`;
         
         navigator.clipboard.writeText(comboText).then(() => {
             showToast('Combo berhasil disalin!', 'success');
@@ -435,13 +355,22 @@ function copyComboToClipboard() {
 function applyBestCombo() {
     showToast('Menerapkan combo terbaik...', 'info');
     
+    // Animasi button
+    const applyBtn = document.getElementById('applyComboBtn');
+    applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menerapkan...';
+    applyBtn.disabled = true;
+    
     // Simulasi proses apply combo
     setTimeout(() => {
         // Tambah data reedem baru
         simulateNewReedem();
         
+        // Reset button
+        applyBtn.innerHTML = '<i class="fas fa-check"></i> Terapkan Combo';
+        applyBtn.disabled = false;
+        
         showToast('Combo berhasil diterapkan!', 'success');
-        hideComboModal();
+        document.getElementById('comboModal').classList.remove('active');
     }, 1500);
 }
 
@@ -453,8 +382,8 @@ function simulateNewReedem() {
         const [server, android] = comboName.split('|');
         
         // Update data lokal
-        appData.totalReedem = (appData.totalReedem || 0) + 1;
-        appData.totalPercobaan = (appData.totalPercobaan || 0) + 1;
+        appData.totalReedem++;
+        appData.totalPercobaan++;
         
         // Update history
         const newRecord = {
@@ -465,25 +394,24 @@ function simulateNewReedem() {
             deviceId: `device_${Math.random().toString(36).substr(2, 9)}`
         };
         
-        if (!appData.reedemHistory) {
-            appData.reedemHistory = [];
-        }
         appData.reedemHistory.push(newRecord);
         
         // Update server count
-        if (appData.TopServer && appData.TopServer[server]) {
+        if (appData.TopServer[server]) {
             appData.TopServer[server]++;
+        } else {
+            appData.TopServer[server] = 1;
         }
         
         // Update android count
-        if (appData.TopAndroid && appData.TopAndroid[android]) {
+        if (appData.TopAndroid[android]) {
             appData.TopAndroid[android]++;
+        } else {
+            appData.TopAndroid[android] = 1;
         }
         
         // Update combo count
-        if (appData.BestCombo && appData.BestCombo[comboName]) {
-            appData.BestCombo[comboName]++;
-        }
+        appData.BestCombo[comboName]++;
         
         // Update UI
         updateUI();
@@ -523,8 +451,6 @@ async function saveToDatabase() {
 
 // Fallback data jika API gagal
 function loadFallbackData() {
-    console.log('Loading fallback data');
-    
     appData = {
         totalReedem: 156,
         totalPercobaan: 200,
@@ -542,21 +468,21 @@ function loadFallbackData() {
                 "server": "Singapore",
                 "androidVersion": "Android 12.0",
                 "attempts": 1,
-                "timestamp": new Date().toISOString(),
+                "timestamp": new Date(Date.now() - 3600000).toISOString(),
                 "deviceId": "device_demo_001"
             },
             {
                 "server": "Japan",
-                "androidVersion": "Android 11.0",
+                "androidVersion": "Android 13.0",
                 "attempts": 2,
-                "timestamp": new Date(Date.now() - 3600000).toISOString(),
+                "timestamp": new Date(Date.now() - 7200000).toISOString(),
                 "deviceId": "device_demo_002"
             },
             {
                 "server": "USA",
-                "androidVersion": "Android 13.0",
+                "androidVersion": "Android 11.0",
                 "attempts": 1,
-                "timestamp": new Date(Date.now() - 7200000).toISOString(),
+                "timestamp": new Date(Date.now() - 10800000).toISOString(),
                 "deviceId": "device_demo_003"
             }
         ]
@@ -573,26 +499,26 @@ function showToast(message, type = 'info') {
     const toastIcon = toast.querySelector('.toast-icon');
     const toastMessage = toast.querySelector('.toast-message');
     
-    if (!toast || !toastIcon || !toastMessage) return;
+    // Remove previous classes
+    toast.className = 'toast';
     
     // Set warna berdasarkan type
     switch(type) {
         case 'success':
-            toast.style.background = 'linear-gradient(45deg, var(--success), #00CC66)';
+            toast.classList.add('show');
             toastIcon.className = 'fas fa-check-circle toast-icon';
             break;
         case 'error':
-            toast.style.background = 'linear-gradient(45deg, var(--danger), #CC0000)';
+            toast.classList.add('show', 'error');
             toastIcon.className = 'fas fa-exclamation-circle toast-icon';
             break;
         case 'info':
-            toast.style.background = 'linear-gradient(45deg, var(--info), #0080FF)';
+            toast.classList.add('show', 'info');
             toastIcon.className = 'fas fa-info-circle toast-icon';
             break;
     }
     
     toastMessage.textContent = message;
-    toast.classList.add('show');
     
     // Auto hide setelah 3 detik
     setTimeout(() => {
@@ -600,63 +526,71 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// Test function untuk debugging
-function testScrolling() {
-    console.log('Testing scrolling...');
-    console.log('Body overflow:', document.body.style.overflow);
-    console.log('Body height:', document.body.style.height);
-    console.log('Body position:', document.body.style.position);
-    console.log('Window scrollY:', window.scrollY);
-    console.log('Document height:', document.documentElement.scrollHeight);
-    console.log('Window height:', window.innerHeight);
-}
-
-// Panggil test function setelah loading
-setTimeout(testScrolling, 3500);
-
-// Event listener untuk debug
-window.addEventListener('scroll', () => {
-    console.log('Scrolling! Current scrollY:', window.scrollY);
-});
-
-// Prevent zoom but allow scrolling
-document.addEventListener('touchmove', function(e) {
-    // Allow normal scrolling
-    if (e.scale !== 1) {
-        e.preventDefault();
-    }
-}, { passive: false });
-
-// Add keyboard shortcut for testing
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'd') {
-        e.preventDefault();
-        testScrolling();
-    }
-});
-
-// Initialize some particles for background
-function initParticles() {
+// Create floating particles
+function createFloatingParticles() {
     const container = document.querySelector('.container');
-    if (!container) return;
     
-    for (let i = 0; i < 10; i++) {
+    // Remove existing particles
+    document.querySelectorAll('.floating-particle').forEach(p => p.remove());
+    
+    // Create new particles
+    for (let i = 0; i < 15; i++) {
         const particle = document.createElement('div');
-        particle.className = 'particle';
+        particle.className = 'floating-particle';
+        
+        const size = Math.random() * 4 + 1;
+        const duration = Math.random() * 20 + 10;
+        const delay = Math.random() * 5;
+        
         particle.style.cssText = `
             position: fixed;
-            width: ${Math.random() * 4 + 1}px;
-            height: ${Math.random() * 4 + 1}px;
-            background: rgba(138, 43, 226, ${Math.random() * 0.3 + 0.1});
+            width: ${size}px;
+            height: ${size}px;
+            background: linear-gradient(45deg, var(--primary-purple), var(--accent-purple));
             border-radius: 50%;
-            top: ${Math.random() * 100}%;
-            left: ${Math.random() * 100}%;
-            z-index: 0;
-            pointer-events: none;
+            top: ${Math.random() * 100}vh;
+            left: ${Math.random() * 100}vw;
+            z-index: -1;
+            opacity: ${Math.random() * 0.3 + 0.1};
+            animation: floatParticle ${duration}s linear ${delay}s infinite;
         `;
-        container.appendChild(particle);
+        
+        document.body.appendChild(particle);
     }
 }
 
-// Initialize particles after loading
-setTimeout(initParticles, 4000);
+// Add CSS for particle animation
+function addParticleAnimation() {
+    if (!document.querySelector('#particle-animation')) {
+        const style = document.createElement('style');
+        style.id = 'particle-animation';
+        style.textContent = `
+            @keyframes floatParticle {
+                0% {
+                    transform: translate(0, 0) rotate(0deg);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 1;
+                }
+                90% {
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Inisialisasi background effects setelah loading
+setTimeout(() => {
+    createFloatingParticles();
+    addParticleAnimation();
+}, 3500);
+
+// Refresh particles on window resize
+window.addEventListener('resize', createFloatingParticles);
